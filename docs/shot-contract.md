@@ -1,16 +1,17 @@
-# 分镜草稿格式 v0.1
+# 表现计划 v0.2
 
-此格式是设计草稿，不是可执行动画契约。
+这是引擎无关的分镜协议。v0.1 的 `camera` 已删除；旧版本明确拒绝，现有示例已迁移。
 
-顶层字段：`schema_version`、`episode_id`、`fps`、`duration_frames`、`scene`、`cast`、`shots`。
+顶层字段：schema_version、episode_id、fps、duration_frames、scene、cast、shots。
+每个镜头：id、start_frame、end_frame、framing、performances。
+每项表演：actor、action、emotion、line。line 可为空字符串。
 
-每个镜头字段：`id`、`start_frame`、`end_frame`、`camera`、`performances`。
-每项表演字段：`actor`、`action`、`emotion`、`line`。无对白时 line 为空字符串。
+`framing` 包含：
+- `size`：wide 或 close。
+- `subjects`：本集角色 ID 列表；close 恰好一个主体。
 
-- 帧率为正整数，所有时刻均为整数帧。
-- 镜头按时间排列，连续且不重叠，覆盖完整成片时长。
-- 演员必须属于本集 cast；场景、演员、镜头、动作、情绪必须在目录中。
-- v0.1 每个演员在一个镜头中最多有一项表演；多人表演的具体时间尚未编码。
-- 示例中的对白时长是未校准的创作占位，不能直接用于音画同步。
-- 后续版本需要加入音频引用、逐项表演起止帧、站位、视线、道具状态、资产版本及起始姿态。
-- 当前校验允许引用 planned 目录项，供创作阶段使用；生产执行器必须拒绝 planned 项。
+帧区间为 [start_frame, end_frame)，镜头连续、无重叠，完整覆盖 duration_frames。角色及词汇必须在目录中；后端还需另行检查是否支持。
+
+当前表演在整个镜头中用一个关键姿势代表，同一演员每镜头最多一项。对白显示在镜头期间，尚无音频同步。尚未编码逐动作时序、视线目标、道具和连续姿态。该限制必须在添加精细动画前解决。
+
+后端布局、程序图形、真实模型、材质、骨骼、摄影机参数都不属于本协议。后续应通过版本化后端配置和逻辑 ID 绑定扩展。

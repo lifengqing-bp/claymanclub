@@ -1,40 +1,47 @@
-# 架构
+# 后端无关架构
 
-## 工作流
+## 三层边界
 
-故事草案 → 能力校验 → 分镜 → 配音与时长对齐 → 表演编排 → 低清预览 → 人工审核 → 正式渲染 → 剪辑与质检。
+| 层 | 拥有什么 | 不应包含什么 |
+| --- | --- | --- |
+| Story | 角色身份、场景语义、对白、动作、情绪 | SVG 坐标、骨骼、引擎对象 |
+| Presentation plan | 整数帧时间线、构图范围和主体 | Unreal 机位路径、特定渲染指令 |
+| Backend | 能力清单、实体绑定、布局、动作映射、具体输出 | 改写故事意图的隐式降级 |
 
-当前只实现分镜草稿的离线校验。其他组件均待开发。
+当前 Story 与 Presentation plan 存放在同一份 v0.2 JSON 中，不为规模尚小的项目引入多余服务。
 
-## 职责与边界
+## 最小后端接口
 
-| 组件 | 输入 | 输出 | 状态 |
-| --- | --- | --- | --- |
-| 故事规划 | 人设、栏目规则、能力目录 | 剧情和对白 | planned |
-| 分镜校验 | JSON 分镜、能力目录 | 错误或通过 | 初版可用 |
-| 配音 | 台词、角色音色 | 音频及实际时长 | planned |
-| 时间编排 | 分镜、实际音频时长 | 以帧为单位的表演时间线 | planned |
-| Unreal 适配器 | 已验证时间线、资产绑定 | Sequencer 序列 | planned |
-| 渲染调度 | 序列、预设、版本信息 | 镜头文件、状态和日志 | planned |
-| 后期 | 镜头、声音、字幕 | 竖屏成片 | planned |
+`PresentationBackend` 定义 `name`、`version`、`capabilities`、`preflight(episode)` 和 `render(episode, output) -> RenderResult`。
 
-分镜与引擎分离：分镜引用稳定的逻辑 ID，适配器将 ID 映射到真实 Unreal 资产。模型不能任意创建资产路径或执行编辑器代码。
+核心先检查故事结构，再由后端检查能力和资源绑定，最后才创建输出。RenderResult 返回入口及 manifest 路径，不暴露 Sequencer、SVG DOM 或其他引擎类型。当前接口为同步本地调用；任务队列、进度和取消后续按真实需要添加。
 
-## 可重复拍摄
+`Capabilities` 目前声明动作、情绪、构图、角色数上限和输出格式。复杂的动作前提及资源可用性由 preflight 检查。音频等新特性加入协议时必须显式扩展能力协商，不从后端名称推断。
 
-- 统一使用整数帧，区间为 [start_frame, end_frame)。
-- 摄影机切换不应重置角色表演；正式适配器使用共享表演时间线。
-- 每个镜头保存起始状态、角色姿态、视线和道具状态，必要时带预滚帧。
-- 固定随机种子并不能保证物理模拟完全确定；重要模拟需要缓存或烘焙。
-- 每次拍摄记录剧本、声音、资产、引擎、适配器和渲染预设的版本。
-- 按镜头重跑；任务状态拟为 queued/running/succeeded/failed/cancelled。
-- 渲染并发、队列、重试有上限。付费配音请求不自动重试。
+## 语义与资产分离
 
-## 技术选择
+`examples/catalog.json` 是故事词汇，不是模型资产清单。逻辑角色 bolt 在火柴人后端是程序绘制的线条，在 3D 后端可以是一个模型。它没有全局 planned/ready 状态；可用性属于具体后端的绑定。
 
-优先验证 Unreal 的 Sequencer 与 Movie Render Queue。引擎版本在首个可运行摄影棚落地时锁定，当前不声称兼容任何具体版本。暂不开发自主 NPC、自由物理交互或多 Agent 编排。
+火柴人后端已实现 robot_lounge 的简化背景，角色采用程序绘制。Unreal 真实资产绑定尚不存在。未来适配器须记录版本和授权，并拒绝未就绪绑定。
 
-官方资料：
-- https://dev.epicgames.com/documentation/en-us/unreal-engine/cinematics-and-movie-making-in-unreal-engine
-- https://dev.epicgames.com/documentation/en-us/unreal-engine/movie-render-pipeline-in-unreal-engine
-- https://dev.epicgames.com/documentation/en-us/metahuman/audio-driven-animation
+构图使用 `framing: {size, subjects}`。火柴人将 close 映射为单人画面；3D 可映射为摄影机取景。核心不规定焦距、世界坐标或骨骼；后端高级选项应存放在独立配置中。
+
+## 后端状态
+
+| 后端 | 状态 | 产物 |
+| --- | --- | --- |
+| stickfigure | 已实现 | SVG 静态姿势、可拖动 HTML 分镜、manifest |
+| Unreal | planned | 可选的 3D 时间线与渲染输出 |
+| 其他 2D/3D/文本形式 | 扩展点 | 由实现者声明 |
+
+测试中的 TextBackend 是隔离性测试替身，不是正式发布的文本后端。
+
+## 能力差异
+
+默认严格失败，不静默丢失动作。当前火柴人是粗略分镜表现：nod 只画低头关键姿势，不是连续点头动画。这个限制写入 manifest 和预览页面。未来若需要把复杂表演降级为简化表现，应输出明确的降级计划并由用户审核。
+
+## 可重复与故障边界
+
+静态产物可重复生成，manifest 记录规范化故事摘要及后端版本。浏览器播放按墙钟时间切换镜头，不是帧精确视频编码。完整跨镜头连续表演、配音时长、资源摘要、引擎模拟缓存及局部重拍尚待实现。
+
+当前预检在创建输出前完成；写盘失败可能留下不完整目录，应换用新输出目录重试。尚未实现事务提交、并发调度或恢复机制。

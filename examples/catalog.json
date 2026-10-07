@@ -1,54 +1,43 @@
 {
   "scenes": {
     "robot_lounge": {
-      "status": "planned"
+      "description": "Logical story capability; representation supplied by backend."
     }
   },
   "actors": {
     "bolt": {
-      "status": "planned"
+      "description": "Logical story capability; representation supplied by backend."
     },
     "pixel": {
-      "status": "planned"
-    }
-  },
-  "cameras": {
-    "two_shot": {
-      "status": "planned"
-    },
-    "bolt_close": {
-      "status": "planned"
-    },
-    "pixel_close": {
-      "status": "planned"
+      "description": "Logical story capability; representation supplied by backend."
     }
   },
   "actions": {
     "idle": {
-      "status": "planned"
+      "description": "Logical story capability; representation supplied by backend."
     },
     "look_at_partner": {
-      "status": "planned"
+      "description": "Logical story capability; representation supplied by backend."
     },
     "look_down": {
-      "status": "planned"
+      "description": "Logical story capability; representation supplied by backend."
     },
     "nod": {
-      "status": "planned"
+      "description": "Logical story capability; representation supplied by backend."
     }
   },
   "emotions": {
     "neutral": {
-      "status": "planned"
+      "description": "Logical story capability; representation supplied by backend."
     },
     "suspicious": {
-      "status": "planned"
+      "description": "Logical story capability; representation supplied by backend."
     },
     "guilty": {
-      "status": "planned"
+      "description": "Logical story capability; representation supplied by backend."
     },
     "surprised": {
-      "status": "planned"
+      "description": "Logical story capability; representation supplied by backend."
     }
   }
 }

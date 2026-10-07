@@ -1,54 +1,48 @@
 # StoryStage
 
-可反复拍摄的虚拟摄影棚：复用角色、场景、表演和镜头，以 3D 故事线持续生产短视频。
+可复用的故事生产系统：同一组角色、故事和表演意图，可交给平面火柴人、2D 动画、3D 引擎或其他呈现后端。
 
-**状态：项目初始化。** 当前包含设计文档、能力目录、分镜示例及离线校验器；尚未接入 Unreal、TTS 或视频渲染，也不包含可运行的 Unreal 工程。StoryStage 为暂定项目名。
+**Unreal 是可选后端，不是核心依赖。** 当前可运行的是无第三方依赖的 Python 核心及 SVG 火柴人分镜后端；Unreal、配音、连续动画与视频导出尚未实现。
 
-## 第一阶段目标
+## 运行
 
-两个风格化角色、一个室内场景，制作三集 30–60 秒短剧。先人工打磨第一集，再验证第二、第三集的资产复用和人工工时下降。
-
-## 原则
-
-- 内容质量先于批量生产。
-- 编剧只能使用已实现的场景、演员、动作和镜头能力。
-- AI 提出剧情与分镜，确定性的执行器组织拍摄；人审核低清预览。
-- 每个镜头独立追踪，支持局部修改与重拍。
-- 固定时间基准、输入版本和资产版本；关键模拟需要烘焙或缓存。
-- 不把 planned 能力当成已实现能力。
-
-## 本地运行
-
-需要 Python 3.10+，无需第三方依赖。在仓库根目录运行：
+需要 Python 3.10+，在仓库根目录运行：
 
 ```bash
-python3 scripts/validate_episode.py examples/episode-001.json
+python3 -m storystage validate examples/episode-001.json
+python3 -m storystage render examples/episode-001.json --backend stickfigure --output outputs/preview
+python3 -m unittest discover -s tests -v
 ```
 
-校验器只检查分镜结构、时间覆盖和目录引用；通过不代表已可渲染。目录中所有资源目前都是 planned 占位项，接入引擎前须完成真实资产绑定。
+用浏览器打开 `outputs/preview/index.html`，可播放、暂停和拖动查看 30 秒分镜。当前每个镜头使用静态关键姿势，无声音、口型或连续身体运动；不是 MP4。输出目录须为新目录，防止覆盖现有结果。
+
+## 抽象边界
+
+1. **故事层**：角色、场景、对白、语义动作和情绪。
+2. **表现计划**：整数帧时间线、画面范围、主体；不含引擎资产路径或骨骼。
+3. **呈现后端**：声明能力、验证绑定、将计划映射到具体表现并输出产物。
+
+同一个 `look_down` 可以由火柴人低头姿势或 3D 骨骼动画表达。二者保留相同故事意图，不承诺视觉质量等价。不支持的能力明确报错，不静默忽略。
 
 ## 项目结构
 
-- `docs/architecture.md`：生产流程、职责与引擎边界。
-- `docs/roadmap.md`：里程碑与验收条件。
-- `docs/shot-contract.md`：初版分镜格式及限制。
-- `docs/production.md`：质量检查、成本指标及资产管理。
-- `examples/catalog.json`：计划支持的摄影棚能力。
-- `examples/episode-001.json`：30 秒双机器人短剧草稿。
-- `scripts/validate_episode.py`：离线校验入口。
+- `storystage/backend.py`：PresentationBackend、Capabilities、RenderResult。
+- `storystage/pipeline.py`：与后端无关的校验及调用流程。
+- `storystage/validation.py`：v0.2 故事协议校验。
+- `storystage/backends/stickfigure.py`：SVG 与 HTML 分镜后端。
+- `examples/`：后端无关的能力词汇和示例故事。
+- `docs/`：架构、协议、路线图及制作规则。
+- `tests/`：替换后端、拒绝不支持能力、重复输出等契约验证。
 
 ## 下一步
 
-人工在 Unreal 中搭建一个摄影棚，完成一个双人对话镜头；记录引擎版本、角色绑定、动作和机位。不要先建设通用 Agent 平台。
+先用火柴人验证剧情节奏，增加逐项表演时间和连续动作，再实现第二个真实呈现后端。两角色、单场景、三集 30–60 秒短剧是首次内容验证范围。
 
-## Git 与远程仓库
-
-仓库使用 `main`，项目包保留 Git 历史。尚未配置远程地址。
-创建空的远程仓库后，在本地执行：
+Git 分支为 `main`，尚无远程仓库。项目包保留 Git 历史。创建空远程仓库后：
 
 ```bash
-git remote add origin <YOUR_REPOSITORY_URL>
-git push -u origin main
+ git remote add origin <YOUR_REPOSITORY_URL>
+ git push -u origin main
 ```
 
-当前未选择开源许可证；引入第三方素材前记录来源及适用授权。
+暂未选择开源许可证。第三方资产需要单独记录来源与授权。
