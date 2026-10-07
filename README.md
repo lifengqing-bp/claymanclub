@@ -1,4 +1,4 @@
-# StoryStage
+# claymanclub
 
 可复用的故事生产系统：同一组角色、故事和表演意图，可交给平面火柴人、2D 动画、3D 引擎或其他呈现后端。
 
@@ -9,8 +9,8 @@
 需要 Python 3.10+，在仓库根目录运行：
 
 ```bash
-python3 -m storystage validate examples/episode-001.json
-python3 -m storystage render examples/episode-001.json --backend stickfigure --output outputs/preview
+python3 -m claymanclub validate examples/episode-001.json
+python3 -m claymanclub render examples/episode-001.json --backend stickfigure --output outputs/preview
 python3 -m unittest discover -s tests -v
 ```
 
@@ -26,10 +26,10 @@ python3 -m unittest discover -s tests -v
 
 ## 项目结构
 
-- `storystage/backend.py`：PresentationBackend、Capabilities、RenderResult。
-- `storystage/pipeline.py`：与后端无关的校验及调用流程。
-- `storystage/validation.py`：v0.2 故事协议校验。
-- `storystage/backends/stickfigure.py`：SVG 与 HTML 分镜后端。
+- `claymanclub/backend.py`：PresentationBackend、Capabilities、RenderResult。
+- `claymanclub/pipeline.py`：与后端无关的校验及调用流程。
+- `claymanclub/validation.py`：v0.2 故事协议校验。
+- `claymanclub/backends/stickfigure.py`：SVG 与 HTML 分镜后端。
 - `examples/`：后端无关的能力词汇和示例故事。
 - `docs/`：架构、协议、路线图及制作规则。
 - `tests/`：替换后端、拒绝不支持能力、重复输出等契约验证。
@@ -38,11 +38,11 @@ python3 -m unittest discover -s tests -v
 
 先用火柴人验证剧情节奏，增加逐项表演时间和连续动作，再实现第二个真实呈现后端。两角色、单场景、三集 30–60 秒短剧是首次内容验证范围。
 
-Git 分支为 `main`，尚无远程仓库。项目包保留 Git 历史。创建空远程仓库后：
+GitHub：https://github.com/lifengqing-bp/claymanclub
 
 ```bash
- git remote add origin <YOUR_REPOSITORY_URL>
- git push -u origin main
+git clone https://github.com/lifengqing-bp/claymanclub.git
+cd claymanclub
 ```
 
-暂未选择开源许可证。第三方资产需要单独记录来源与授权。
+项目许可证见 `LICENSE`。第三方资产需要单独记录来源与授权。

@@ -10,7 +10,7 @@ BACKENDS = {'stickfigure': StickFigureBackend}
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='StoryStage story validation and presentation')
+    parser = argparse.ArgumentParser(description='claymanclub story validation and presentation')
     parser.add_argument('command', choices=['validate', 'render'])
     parser.add_argument('episode', type=Path)
     parser.add_argument('--catalog', type=Path, default=Path(__file__).resolve().parents[1] / 'examples/catalog.json')

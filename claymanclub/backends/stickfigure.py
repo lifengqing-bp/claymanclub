@@ -37,7 +37,7 @@ class StickFigureBackend(PresentationBackend):
                  '<rect width="540" height="960" fill="#101827"/>',
                  '<rect x="35" y="120" width="470" height="650" rx="24" fill="#1b2940"/>',
                  '<path d="M35 660H505" stroke="#52647c"/>',
-                 '<text x="35" y="65" fill="#e6efff" font-size="26">StoryStage · Stick figures</text>']
+                 '<text x="35" y="65" fill="#e6efff" font-size="26">claymanclub · Stick figures</text>']
         by_actor = {p['actor']: p for p in shot['performances']}
         for index, actor in enumerate(visible):
             x = 270 if len(visible) == 1 else 170 + index * 200
@@ -78,9 +78,9 @@ class StickFigureBackend(PresentationBackend):
             manifest['shots'].append({'file': filename, 'start': shot['start_frame'], 'end': shot['end_frame']})
         (output / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
         data = json.dumps({k: manifest[k] for k in ('fps', 'duration_frames', 'shots')})
-        html = '''<!doctype html><meta charset="utf-8"><title>StoryStage preview</title>
+        html = '''<!doctype html><meta charset="utf-8"><title>claymanclub preview</title>
 <style>body{background:#101827;color:#eee;font:16px system-ui;text-align:center}img{height:75vh;max-width:95vw}button,input{margin:8px}input{width:45vw}</style>
-<h2>StoryStage · 火柴人分镜预览</h2><p>静态关键姿势 · 无音频 · 非最终视频</p>
+<h2>claymanclub · 火柴人分镜预览</h2><p>静态关键姿势 · 无音频 · 非最终视频</p>
 <img id="frame" alt="Storyboard frame"><div><button id="play">播放</button><input id="seek" type="range" min="0" value="0"><span id="time"></span></div>
 <script>const plan=DATA;const picture=document.getElementById('frame'),seek=document.getElementById('seek'),button=document.getElementById('play');
 let playing=false,t=0,last=null;seek.max=plan.duration_frames-1;

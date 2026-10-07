@@ -4,9 +4,9 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from storystage.backend import PresentationBackend, Capabilities, RenderResult
-from storystage.backends.stickfigure import StickFigureBackend
-from storystage.pipeline import render_episode
+from claymanclub.backend import PresentationBackend, Capabilities, RenderResult
+from claymanclub.backends.stickfigure import StickFigureBackend
+from claymanclub.pipeline import render_episode
 
 ROOT = Path(__file__).resolve().parents[1]
 
