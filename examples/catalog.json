@@ -1,0 +1,54 @@
+{
+  "scenes": {
+    "robot_lounge": {
+      "status": "planned"
+    }
+  },
+  "actors": {
+    "bolt": {
+      "status": "planned"
+    },
+    "pixel": {
+      "status": "planned"
+    }
+  },
+  "cameras": {
+    "two_shot": {
+      "status": "planned"
+    },
+    "bolt_close": {
+      "status": "planned"
+    },
+    "pixel_close": {
+      "status": "planned"
+    }
+  },
+  "actions": {
+    "idle": {
+      "status": "planned"
+    },
+    "look_at_partner": {
+      "status": "planned"
+    },
+    "look_down": {
+      "status": "planned"
+    },
+    "nod": {
+      "status": "planned"
+    }
+  },
+  "emotions": {
+    "neutral": {
+      "status": "planned"
+    },
+    "suspicious": {
+      "status": "planned"
+    },
+    "guilty": {
+      "status": "planned"
+    },
+    "surprised": {
+      "status": "planned"
+    }
+  }
+}

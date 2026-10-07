@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+.DS_Store
+outputs/
+renders/
+**/Binaries/
+**/DerivedDataCache/
+**/Intermediate/
+**/Saved/
+.idea/
+.vscode/
