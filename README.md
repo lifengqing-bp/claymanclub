@@ -49,3 +49,19 @@ cd claymanclub
 ```
 
 项目许可证见 `LICENSE`。第三方资产需要单独记录来源与授权。
+
+## 可选真实浏览器测试
+
+Python 渲染器不需要 Node 或 Playwright。开发验证可使用：
+
+```sh
+npm ci
+npx playwright install --with-deps chromium
+npm run test:browser
+```
+
+Linux 建议安装 `fonts-noto-cjk` 以正确显示示例中文。测试直接打开生成的自包含 HTML，
+覆盖实际 SVG 栅格化、原生播放/暂停/拖动/键盘定位、跨镜头向后定位、结束重播、
+同帧截图一致性和窄屏布局。大部分测试冻结浏览器时钟以可重复执行，另有未模拟
+`requestAnimationFrame` 的播放测试。截图和浏览器版本保存于 `outputs/browser-tests/run-*/`；
+GitHub Actions 将该目录作为 `chromium-camera-evidence` 保存 30 天。

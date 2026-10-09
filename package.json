@@ -1,0 +1,6 @@
+{
+  "name": "claymanclub-browser-tests",
+  "private": true,
+  "scripts": {"test:browser": "node --test tests/browser_test.cjs"},
+  "devDependencies": {"playwright": "1.56.1"}
+}
