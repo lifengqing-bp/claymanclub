@@ -40,7 +40,8 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(result.entrypoint.exists())
         for p in self.output.glob('*.svg'):
             ET.parse(p)
-        other = render_episode(self.episode, self.catalog, TextBackend(), self.output.parent/'text')
+        legacy = json.loads((ROOT/'tests/fixtures/episode-001-v02.json').read_text())
+        other = render_episode(legacy, self.catalog, TextBackend(), self.output.parent/'text')
         self.assertIn('充电器', other.entrypoint.read_text())
         self.assertEqual(original, self.episode)
 

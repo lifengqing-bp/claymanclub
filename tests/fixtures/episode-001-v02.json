@@ -1,5 +1,5 @@
 {
-  "schema_version": "0.3",
+  "schema_version": "0.2",
   "episode_id": "episode-001",
   "fps": 30,
   "duration_frames": 900,
@@ -26,54 +26,6 @@
         "subjects": [
           "bolt",
           "pixel"
-        ]
-      },
-      "camera": {
-        "space": "framing_2d",
-        "interpolation": "linear",
-        "keyframes": [
-          {
-            "frame": 0,
-            "position": [
-              0,
-              0,
-              0
-            ],
-            "rotation": [
-              0,
-              0,
-              0
-            ],
-            "zoom": 1
-          },
-          {
-            "frame": 90,
-            "position": [
-              -0.08,
-              0.05,
-              0
-            ],
-            "rotation": [
-              0,
-              0,
-              5
-            ],
-            "zoom": 1.2
-          },
-          {
-            "frame": 180,
-            "position": [
-              0.08,
-              0,
-              0
-            ],
-            "rotation": [
-              0,
-              0,
-              -5
-            ],
-            "zoom": 1.1
-          }
         ]
       }
     },
