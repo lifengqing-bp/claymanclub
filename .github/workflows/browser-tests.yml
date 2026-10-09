@@ -2,7 +2,7 @@ name: Browser camera tests
 on:
   pull_request:
   push:
-    branches: [main, feat/camera-trajectories]
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read

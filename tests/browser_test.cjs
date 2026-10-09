@@ -8,7 +8,7 @@ const {execFileSync} = require('node:child_process');
 const {chromium} = require('playwright');
 const root = path.resolve(__dirname, '..');
 const output = path.resolve(root, process.env.BROWSER_TEST_OUTPUT || 'outputs/browser-tests');
-let browser;
+let browser, thisRun;
 before(async () => {
   fs.mkdirSync(output, {recursive:true});
   // Unique directories preserve earlier evidence and the renderer's no-overwrite rule.
@@ -20,7 +20,6 @@ before(async () => {
   fs.writeFileSync(path.join(thisRun,'environment.json'), JSON.stringify({browser:browser.version(),playwright:require('playwright/package.json').version,platform:process.platform,viewport:{width:1000,height:1100}},null,2));
   console.log(`Browser evidence: ${thisRun}`);
 });
-let thisRun;
 after(async () => {if (browser) await browser.close();});
 async function open(t, name='v03', viewport={width:1000,height:1100}, clock=true) {
   const page = await browser.newPage({viewport, deviceScaleFactor:1});
