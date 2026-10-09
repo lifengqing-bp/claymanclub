@@ -62,7 +62,8 @@ class StickFigureBackend(PresentationBackend):
                 slope = -6 if p['emotion'] == 'suspicious' else 5 if p['emotion'] == 'guilty' else 0
                 parts.append(f'<path d="M-12 {head_y+20}l24 {slope}" stroke-width="3"/>')
             parts += ['</g>', f'<text x="{x}" y="710" fill="{color}" text-anchor="middle" font-size="23">{escape(actor)}</text>']
-        parts += ['</g>', '<text x="35" y="65" fill="#e6efff" font-size="26">claymanclub · Stick figures</text>']
+        parts += ['</g>', '<rect width="540" height="100" fill="#101827"/>',
+                  '<rect y="780" width="540" height="180" fill="#101827"/>', '<text x="35" y="65" fill="#e6efff" font-size="26">claymanclub · Stick figures</text>']
         # Subtitle wrapping by code points is adequate for the supplied short CJK lines.
         lines = [p['actor'] + ': ' + p['line'] for p in shot['performances'] if p['line']]
         rows = [line[i:i+22] for line in lines for i in range(0, len(line), 22)]
@@ -93,8 +94,8 @@ class StickFigureBackend(PresentationBackend):
         data = json.dumps({'fps': episode['fps'], 'duration_frames': episode['duration_frames'],
                            'shots': preview_shots}).replace('<', '\\u003c')
         player = Path(__file__).with_name('player.js').read_text(encoding='utf-8')
-        html = '''<!doctype html><meta charset="utf-8"><title>claymanclub preview</title>
-<style>body{background:#101827;color:#eee;font:16px system-ui;text-align:center}svg{height:75vh;max-width:95vw}button,input{margin:8px}input{width:45vw}</style>
+        html = '''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>claymanclub preview</title>
+<style>body{background:#101827;color:#eee;font:16px system-ui;text-align:center}svg{display:block;margin:auto;width:min(95vw,42.1875vh);height:auto;overflow:hidden}button,input{margin:8px}input{width:45vw}</style>
 <h2>claymanclub · 火柴人分镜预览</h2><p>静态角色姿势 · 二维运镜 · 无音频 · 非最终视频</p>
 <div id="frame" role="img" aria-label="Storyboard frame"></div><div><button id="play">播放</button><input id="seek" aria-label="Frame" type="range" min="0" value="0"><span id="time"></span></div>
 <script>const plan=''' + data + ';\n' + player + '</script>'

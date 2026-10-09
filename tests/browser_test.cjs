@@ -62,10 +62,13 @@ test('camera rasterizes deterministically; geometry, overlays and clipping are s
   const page=await open(t);
   const initial=await picture(page,'frame-000');
   const base=await geometry(page);
+  const outside={x:Math.ceil(base.svg.x+base.svg.width)+1,y:Math.ceil(base.svg.y),width:20,height:Math.floor(base.svg.height)};
+  const outsidePixels=await page.screenshot({clip:outside});
   await frame(page,90);
   const moved=await picture(page,'frame-090');
   const actual=await geometry(page);
   assert.notDeepEqual(moved,initial,'camera must change rendered pixels');
+  assert.deepEqual(await page.screenshot({clip:outside}),outsidePixels,'scene clips to SVG viewport');
   assert.deepEqual(actual.overlays,base.overlays,'title/subtitle stay in screen coordinates');
   assert.deepEqual(actual.controls,base.controls,'camera cannot move fixed controls');
   // Independent analytic oracle for known keyframe: transform a real SVG point.
@@ -80,13 +83,21 @@ test('camera rasterizes deterministically; geometry, overlays and clipping are s
   const scale=actual.svg.height/960;
   expected.forEach((v,i)=>assert.ok(Math.abs(result[i]-v*scale)<0.01));
   assert.ok(actual.circle.x>base.circle.x && actual.circle.width>base.circle.width);
-  // Raster strips outside the scene detect overflow; overlays are compared as pixels too.
+  // Fixed overlays are compared as pixels, not just DOM bounding boxes.
   for (const [name,y,height] of [['title',0,100],['subtitle',790,130]]) {
     const clip={x:actual.svg.x,y:actual.svg.y+y*scale,width:actual.svg.width,height:height*scale};
     const at90=await page.screenshot({clip});
     await frame(page,0);
     assert.deepEqual(await page.screenshot({clip}),at90,`${name} pixels must remain stable`);
     await frame(page,90);
+  }
+  let previous;
+  for(const f of [89,90,91]) {
+    await frame(page,f);
+    const g=await geometry(page);
+    await picture(page,`frame-${f}`);
+    if(previous) assert.ok(Math.hypot(g.circle.x-previous.x,g.circle.y-previous.y)<4,'no position jump around keyframe');
+    previous=g.circle;
   }
   await frame(page,179); await picture(page,'frame-179');
   await frame(page,180); await picture(page,'frame-180');
