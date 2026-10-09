@@ -65,3 +65,5 @@ Linux 建议安装 `fonts-noto-cjk` 以正确显示示例中文。测试直接�
 同帧截图一致性和窄屏布局。大部分测试冻结浏览器时钟以可重复执行，另有未模拟
 `requestAnimationFrame` 的播放测试。截图和浏览器版本保存于 `outputs/browser-tests/run-*/`；
 GitHub Actions 将该目录作为 `chromium-camera-evidence` 保存 30 天。
+
+验证结果、已修复问题与关键帧截图见 [浏览器验证记录](docs/browser-validation/README.md)。
