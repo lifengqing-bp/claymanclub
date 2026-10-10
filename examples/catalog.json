@@ -2,6 +2,9 @@
   "scenes": {
     "robot_lounge": {
       "description": "Logical story capability; representation supplied by backend."
+    },
+    "wireframe_lounge": {
+      "description": "A lounge with room edges, floor depth cues, window, table, chair, shelf and plant. Backend owns visual bindings; no prop interaction."
     }
   },
   "actors": {

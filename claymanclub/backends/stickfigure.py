@@ -7,6 +7,7 @@ from ..camera import preflight_camera, sample_camera
 from ..performance import active_performances, performance_boundaries, preflight_performances, nod_amount, TIMED_VERSIONS, ANIMATED_ACTIONS, ANIMATED_VERSIONS
 from .gestures import gesture_angles, walk_swing, joint_angles
 from ..staging import preflight_tracks, sample_offset
+from .scenes import SCENES, scene_svg
 from ..backend import Capabilities, PresentationBackend, RenderResult
 
 
@@ -32,7 +33,7 @@ def limb_svg(actor, side, kind, rotation, bend):
 
 
 class StickFigureBackend(PresentationBackend):
-    name, version = 'stickfigure', '0.7'
+    name, version = 'stickfigure', '0.8'
     capabilities = Capabilities(
         frozenset({'idle', 'look_at_partner', 'look_down', 'nod', 'wave', 'bow', 'walk'}),
         frozenset({'neutral', 'suspicious', 'guilty', 'surprised'}),
@@ -46,8 +47,8 @@ class StickFigureBackend(PresentationBackend):
         preflight_performances(episode, self.capabilities)
         if len(episode['cast']) > self.capabilities.max_cast:
             raise ValueError('stickfigure supports at most two actors')
-        # This demo has one implemented set; actors are procedural and need no models.
-        if episode['scene'] != 'robot_lounge':
+        # Scene IDs remain semantic; each backend owns its procedural bindings.
+        if episode['scene'] not in SCENES:
             raise ValueError('stickfigure has no scene binding: ' + episode['scene'])
         for shot in episode['shots']:
             if shot['framing']['size'] not in self.capabilities.framing:
@@ -72,8 +73,7 @@ class StickFigureBackend(PresentationBackend):
         parts = ['<svg xmlns="http://www.w3.org/2000/svg" width="540" height="960" viewBox="0 0 540 960">',
                  '<rect width="540" height="960" fill="#101827"/>',
                  f'<g data-camera-world="" transform="{transform}">',
-                 '<rect x="35" y="120" width="470" height="650" rx="24" fill="#1b2940"/>',
-                 '<path d="M35 660H505" stroke="#52647c"/>']
+                 scene_svg(episode['scene'])]
         by_actor = {p['actor']: p for p in performances}
         spatial = episode['schema_version'] == '0.6'
         tracks = {track['actor']: track for track in shot.get('actor_tracks', [])}
@@ -84,6 +84,7 @@ class StickFigureBackend(PresentationBackend):
             x = 270 if len(visible) == 1 else 170 + index * 200
             p = by_actor.get(actor, {'action': 'idle', 'emotion': 'neutral'})
             color = ['#64dddc', '#ffcd78'][episode['cast'].index(actor)]
+            head_fill = '#1b2940' if episode['scene'] == 'wireframe_lounge' else 'none'
             head_y = 360 if p['action'] == 'look_down' or (p['action'] == 'nod' and not animated) else 345
             gaze = (6 if episode['cast'].index(actor) == 0 else -6) if p['action'] == 'look_at_partner' else 0
             if 'gaze_target' in p:
@@ -102,7 +103,7 @@ class StickFigureBackend(PresentationBackend):
             parts += [f'<g data-actor="{escape(actor, quote=True)}" data-base-x="{x}" transform="translate({x+dx*960} {-dy*960})" stroke="{color}" stroke-width="7" stroke-linecap="round" fill="none">',
                       f'<g data-upper="{escape(actor, quote=True)}" transform="rotate({joints["bow"]} 0 525)">',
                       f'<g data-head="{escape(actor, quote=True)}" transform="translate(0 {head_offset})">',
-                      f'<circle cx="0" cy="{head_y}" r="40"/>',
+                      f'<circle cx="0" cy="{head_y}" r="40" fill="{head_fill}"/>',
                       f'<path data-eyes="{escape(actor, quote=True)}" data-head-y="{head_y}" d="M{-15+gaze} {head_y-5}h1M{15+gaze} {head_y-5}h1"/>']
             if p['emotion'] == 'surprised':
                 parts.append(f'<circle cx="0" cy="{head_y+19}" r="8" stroke-width="3"/>')
@@ -130,7 +131,7 @@ class StickFigureBackend(PresentationBackend):
         self.preflight(episode)
         output.mkdir(parents=True, exist_ok=False)
         manifest = {'backend': self.name, 'backend_version': self.version,
-                    'format': self.capabilities.output_format,
+                    'format': self.capabilities.output_format, 'scene': episode['scene'],
                     'episode_sha256': hashlib.sha256(json.dumps(episode, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
                     'limitations': ['v0.5 supports procedural nod, wave and bow; older versions retain key poses.',
                                     'v0.6 adds actor offsets and procedural walking; no foot locking, skeletal blending, audio or lip sync.'],

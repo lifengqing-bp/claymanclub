@@ -1,0 +1,339 @@
+{
+  "schema_version": "0.6",
+  "episode_id": "wireframe-lounge-demo",
+  "fps": 30,
+  "duration_frames": 540,
+  "scene": "wireframe_lounge",
+  "cast": [
+    "bolt",
+    "pixel"
+  ],
+  "shots": [
+    {
+      "id": "shot-001",
+      "start_frame": 0,
+      "end_frame": 180,
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "walk",
+          "emotion": "neutral",
+          "line": "Room to move.",
+          "start_frame": 20,
+          "end_frame": 121,
+          "gaze_target": "pixel"
+        },
+        {
+          "actor": "pixel",
+          "action": "walk",
+          "emotion": "neutral",
+          "line": "Nice place.",
+          "start_frame": 20,
+          "end_frame": 121,
+          "gaze_target": "bolt"
+        }
+      ],
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 179,
+            "position": [
+              0,
+              0.015,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              2
+            ],
+            "zoom": 1.08
+          }
+        ]
+      },
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 20,
+              "offset": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 120,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 20,
+              "offset": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 120,
+              "offset": [
+                -0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shot-002",
+      "start_frame": 180,
+      "end_frame": 360,
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "nod",
+          "emotion": "neutral",
+          "line": "New scene.",
+          "start_frame": 20,
+          "end_frame": 121,
+          "gaze_target": "pixel"
+        },
+        {
+          "actor": "pixel",
+          "action": "wave",
+          "emotion": "neutral",
+          "line": "Same actors.",
+          "start_frame": 20,
+          "end_frame": 121,
+          "gaze_target": "bolt"
+        }
+      ],
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 179,
+            "position": [
+              0,
+              0.015,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              -2
+            ],
+            "zoom": 1.08
+          }
+        ]
+      },
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shot-003",
+      "start_frame": 360,
+      "end_frame": 540,
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "wave",
+          "emotion": "neutral",
+          "line": "Story time?",
+          "start_frame": 20,
+          "end_frame": 151,
+          "gaze_target": "pixel"
+        },
+        {
+          "actor": "pixel",
+          "action": "bow",
+          "emotion": "neutral",
+          "line": "Take a seat.",
+          "start_frame": 20,
+          "end_frame": 151,
+          "gaze_target": "bolt"
+        }
+      ],
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 179,
+            "position": [
+              0,
+              0.015,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              2
+            ],
+            "zoom": 1.08
+          }
+        ]
+      },
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
