@@ -18,6 +18,12 @@ function cameraTransform(state) {
   const [x,y]=state.position;
   return `translate(270 480) scale(${state.zoom}) rotate(${state.rotation[2]}) translate(${-270-x*960} ${-480+y*960})`;
 }
+function nodAmount(performance, frame) {
+  if (!performance || performance.action!=='nod') return 0;
+  const start=performance.start_frame,end=performance.end_frame;
+  if(frame<=start || frame>=end-1) return 0;
+  return (1-Math.cos(2*Math.PI*(frame-start)/(end-start-1)))/2;
+}
 const picture=document.getElementById('frame'),seek=document.getElementById('seek'),button=document.getElementById('play');
 let playing=false,t=0,last=null,currentShot=null,currentPose=null;
 seek.max=plan.duration_frames-1;
@@ -28,6 +34,12 @@ function draw() {
   const pose=s.poses ? s.poses.reduce((chosen,p)=>p.start<=local?p:chosen,s.poses[0]) : s;
   if(currentShot!==s || currentPose!==pose){picture.innerHTML=pose.svg;currentShot=s;currentPose=pose;}
   picture.querySelector('[data-camera-world]').setAttribute('transform',cameraTransform(cameraAt(s.camera,f-s.start)));
+  if(s.motions){
+    for(const head of picture.querySelectorAll('[data-head]')){
+      const p=s.motions.find(p=>p.actor===head.getAttribute('data-head') && p.start_frame<=local && local<p.end_frame);
+      head.setAttribute('transform',`translate(0 ${15*nodAmount(p,local)})`);
+    }
+  }
   seek.value=f;
   document.getElementById('time').textContent=(f/plan.fps).toFixed(1)+'s';
 }
