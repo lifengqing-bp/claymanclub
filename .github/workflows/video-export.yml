@@ -1,0 +1,36 @@
+name: One More Take video
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  video:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install SVG rasterizer and video encoder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-2 libcairo2 libglib2.0-0t64 ffmpeg fonts-dejavu-core fonts-noto-cjk
+      - name: Export actual SVG frames
+        run: python3 scripts/export_video.py examples/one-more-take.json --output outputs/video/one-more-take.mp4
+      - name: Verify complete silent video and record checksum
+        run: |
+          python3 scripts/verify_video.py outputs/video/one-more-take.mp4
+          git rev-parse HEAD > outputs/video/source-commit.txt
+          cat outputs/video/one-more-take.verification.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload verified video
+        uses: actions/upload-artifact@v4
+        with:
+          name: one-more-take-mp4
+          path: outputs/video/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
