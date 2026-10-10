@@ -26,7 +26,7 @@ class CameraTests(unittest.TestCase):
         validate(legacy, self.catalog)
         with tempfile.TemporaryDirectory() as d:
             render_episode(legacy, self.catalog, StickFigureBackend(), Path(d)/'legacy')
-        for version in ('0.1', '0.4', None, 0.3, '0.2'):
+        for version in ('0.1', '0.5', None, 0.3, '0.2'):
             with self.subTest(version=version), self.assertRaises(ValueError):
                 self.episode['schema_version'] = version
                 validate(self.episode, self.catalog)

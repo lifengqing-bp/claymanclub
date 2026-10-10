@@ -19,12 +19,14 @@ function cameraTransform(state) {
   return `translate(270 480) scale(${state.zoom}) rotate(${state.rotation[2]}) translate(${-270-x*960} ${-480+y*960})`;
 }
 const picture=document.getElementById('frame'),seek=document.getElementById('seek'),button=document.getElementById('play');
-let playing=false,t=0,last=null,currentShot=null;
+let playing=false,t=0,last=null,currentShot=null,currentPose=null;
 seek.max=plan.duration_frames-1;
 function draw() {
   const f=Math.max(0,Math.min(plan.duration_frames-1,Math.floor(t)));
   const s=plan.shots.find(s=>f>=s.start&&f<s.end);
-  if(currentShot!==s){picture.innerHTML=s.svg;currentShot=s;}
+  const local=f-s.start;
+  const pose=s.poses ? s.poses.reduce((chosen,p)=>p.start<=local?p:chosen,s.poses[0]) : s;
+  if(currentShot!==s || currentPose!==pose){picture.innerHTML=pose.svg;currentShot=s;currentPose=pose;}
   picture.querySelector('[data-camera-world]').setAttribute('transform',cameraTransform(cameraAt(s.camera,f-s.start)));
   seek.value=f;
   document.getElementById('time').textContent=(f/plan.fps).toFixed(1)+'s';
