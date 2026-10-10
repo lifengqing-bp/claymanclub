@@ -120,6 +120,18 @@ python3 scripts/export_video.py examples/one-more-take.json --output outputs/one
 火柴人后端 0.6.1 为 walk 增加交替抬脚和屈膝，保留首末中立、两周期和绝对帧语义；仍不提供脚部锁定。
 英文字幕、无音频。分镜与验收记录见 [样片说明](docs/one-more-take.md)。
 
+### 下载完整 MP4
+
+在 [One More Take video Actions](https://github.com/lifengqing-bp/claymanclub/actions/workflows/video-export.yml)
+选择成功的运行，在 Artifacts 下载 `one-more-take-mp4` 并解压观看。
+需要登录 GitHub；产物保留 30 天。PR、main push 自动导出，合并后也可用 Run workflow 手动重新生成。
+每次使用该次 checkout 的现有 SVG 后端，包含后续已合并的呈现改进；不是冻结 PR #6 的历史画面。
+
+产物包含 540×960、30 fps、1080 帧、36 秒的 H.264 MP4、验证 JSON、SHA-256 和源码 commit。
+没有音轨、音乐或配音。CI 仅在导出、参数检查及完整严格解码全部成功后上传，不上传失败或取消运行的半成品。
+本地导出后可运行 `python3 scripts/verify_video.py outputs/one-more-take.mp4` 复现验证。
+字体、librsvg 和 FFmpeg 版本可能影响编码字节；SHA-256 标识每次实际产物，不承诺跨环境一致。
+
 
 ## 肘、膝关节（火柴人后端 0.7）
 
