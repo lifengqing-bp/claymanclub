@@ -5,13 +5,13 @@ from html import escape
 from pathlib import Path
 from ..camera import preflight_camera, sample_camera
 from ..performance import active_performances, performance_boundaries, preflight_performances, nod_amount, TIMED_VERSIONS, ANIMATED_ACTIONS, ANIMATED_VERSIONS
-from .gestures import gesture_angles, walk_swing
+from .gestures import gesture_angles, walk_swing, walk_leg_path
 from ..staging import preflight_tracks, sample_offset
 from ..backend import Capabilities, PresentationBackend, RenderResult
 
 
 class StickFigureBackend(PresentationBackend):
-    name, version = 'stickfigure', '0.6'
+    name, version = 'stickfigure', '0.6.1'
     capabilities = Capabilities(
         frozenset({'idle', 'look_at_partner', 'look_down', 'nod', 'wave', 'bow', 'walk'}),
         frozenset({'neutral', 'suspicious', 'guilty', 'surprised'}),
@@ -75,6 +75,8 @@ class StickFigureBackend(PresentationBackend):
                 gaze = 6 if delta > 0 else -6 if delta < 0 else 0
             dx, dy, _ = offsets[actor]
             swing = walk_swing(p, local_frame) if spatial else 0
+            left_leg = walk_leg_path(p, local_frame, 'left')
+            right_leg = walk_leg_path(p, local_frame, 'right')
             head_offset = 15 * nod_amount(p, local_frame) if animated else 0
             joints = gesture_angles(p, local_frame) if animated else {'bow': 0, 'wave': 0}
             parts += [f'<g data-actor="{escape(actor, quote=True)}" data-base-x="{x}" transform="translate({x+dx*960} {-dy*960})" stroke="{color}" stroke-width="7" stroke-linecap="round" fill="none">',
@@ -90,8 +92,8 @@ class StickFigureBackend(PresentationBackend):
             parts += ['</g>', '<path d="M0 395V525"/>',
                       f'<g data-walk-arm="" transform="rotate({-swing} 0 425)"><path d="M0 425L-55 475"/></g>',
                       f'<g data-wave="{escape(actor, quote=True)}" transform="rotate({joints["wave"]+swing} 0 425)"><path d="M0 425L55 475"/></g>',
-                      '</g>', f'<g data-walk-leg="left" transform="rotate({swing} 0 525)"><path data-legs="" d="M0 525L-40 635"/></g>',
-                      f'<g data-walk-leg="right" transform="rotate({-swing} 0 525)"><path data-legs="" d="M0 525L40 635"/></g>', '</g>', f'<text data-name="{escape(actor, quote=True)}" data-base-x="{x}" transform="translate({dx*960} {-dy*960})" x="{x}" y="710" fill="{color}" text-anchor="middle" font-size="23">{escape(actor)}</text>']
+                      '</g>', f'<g data-walk-leg="left" transform="rotate({swing} 0 525)"><path data-legs="" d="{left_leg}"/></g>',
+                      f'<g data-walk-leg="right" transform="rotate({-swing} 0 525)"><path data-legs="" d="{right_leg}"/></g>', '</g>', f'<text text-rendering="geometricPrecision" data-name="{escape(actor, quote=True)}" data-base-x="{x}" transform="translate({dx*960} {-dy*960})" x="{x}" y="710" fill="{color}" text-anchor="middle" font-size="23">{escape(actor)}</text>']
         parts += ['</g>', '<rect width="540" height="100" fill="#101827"/>',
                   '<rect y="780" width="540" height="180" fill="#101827"/>', '<text x="35" y="65" fill="#e6efff" font-size="26">claymanclub · Stick figures</text>']
         # Subtitle wrapping by code points is adequate for the supplied short CJK lines.

@@ -13,7 +13,7 @@ before(async () => {
   fs.mkdirSync(output, {recursive:true});
   // Unique directories preserve earlier evidence and the renderer's no-overwrite rule.
   thisRun = fs.mkdtempSync(path.join(output, 'run-'));
-  for (const [name, source] of [['stage','examples/stage-motion.json'], ['gestures','examples/gestures.json'], ['v05','examples/gaze-and-nod.json'], ['v04','examples/timed-performances.json'], ['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
+  for (const [name, source] of [['story','examples/one-more-take.json'], ['stage','examples/stage-motion.json'], ['gestures','examples/gestures.json'], ['v05','examples/gaze-and-nod.json'], ['v04','examples/timed-performances.json'], ['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
     execFileSync(process.env.PYTHON || 'python3', ['-m','claymanclub','render',source,'--backend','stickfigure','--output',path.join(thisRun,name)], {cwd:root});
   }
   const crossing=JSON.parse(fs.readFileSync(path.join(root,'examples/stage-motion.json'),'utf8'));
@@ -277,6 +277,10 @@ test('actor tracks and walking compose with camera; seek, cuts and replay remain
   await frame(page,58);
   const leg=await actor.locator('[data-walk-leg="left"]').getAttribute('transform');
   assert.notEqual(leg,'rotate(0 0 525)');
+  const kneePath=await actor.locator('[data-walk-leg="left"] [data-legs]').getAttribute('d');
+  assert.equal((kneePath.match(/L/g)||[]).length,2,'walking has a knee joint');
+  const footY=Number(kneePath.split(' ').at(-1));
+  assert.ok(footY<635,'swing foot lifts during the step');
   assert.deepEqual(await page.screenshot({clip}),subtitle);
   assert.notDeepEqual((await geometry(page)).matrix,g.matrix);
   const moving=await picture(page,'stage-moving');
@@ -310,4 +314,29 @@ test('gaze follows crossing actors and absent tracks reset on the next shot',asy
   assert.equal(await page.locator('[data-actor="pixel"]').count(),0);
   await frame(page,220);assert.equal(await eyes.getAttribute('d'),'M-9 340h1M21 340h1');
   await frame(page,119);assert.deepEqual(await picture(page,'stage-cross-return'),crossed);
+});
+
+
+test('story preserves cue, wrong gesture, reaction and punchline when seeking',async t=>{
+  const page=await open(t,'story');
+  await frame(page,20);
+  const first=await picture(page,'story-walk');
+  await frame(page,180+30);assert.match(await page.locator('#frame').textContent(),/Wave on my cue/);
+  await frame(page,360+30);assert.match(await page.locator('#frame').textContent(),/Bow/);
+  await frame(page,360+105);
+  const wave=await page.locator('[data-wave="pixel"]').getAttribute('transform');
+  assert.notEqual(wave,'rotate(0 0 425)');
+  const wrongDOM=await page.locator('#frame').innerHTML();
+  const wrong=await picture(page,'story-wrong-wave');
+  await frame(page,540+30);
+  assert.equal(await page.locator('[data-actor]').count(),1);
+  assert.match(await page.locator('#frame').textContent(),/That was a wave/);
+  await frame(page,720+115);
+  assert.equal(await page.locator('[data-upper="pixel"]').getAttribute('transform'),'rotate(30 0 525)');
+  await frame(page,900+120);assert.match(await page.locator('#frame').textContent(),/One more take/);
+  await frame(page,360+105);
+  assert.equal(await page.locator('#frame').innerHTML(),wrongDOM,'same frame must reconstruct exactly the same SVG');
+  assert.deepEqual(await picture(page,'story-wrong-return'),wrong);
+  await frame(page,1079);await page.locator('#play').click();await page.locator('#play').click();
+  await frame(page,20);assert.deepEqual(await picture(page,'story-replay'),first);
 });

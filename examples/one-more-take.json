@@ -1,0 +1,651 @@
+{
+  "schema_version": "0.6",
+  "episode_id": "one-more-take",
+  "fps": 30,
+  "duration_frames": 1080,
+  "scene": "robot_lounge",
+  "cast": [
+    "bolt",
+    "pixel"
+  ],
+  "shots": [
+    {
+      "id": "take-01",
+      "start_frame": 0,
+      "end_frame": 180,
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "walk",
+          "start_frame": 0,
+          "end_frame": 61,
+          "line": "",
+          "emotion": "neutral",
+          "gaze_target": "pixel"
+        },
+        {
+          "actor": "pixel",
+          "action": "walk",
+          "start_frame": 0,
+          "end_frame": 61,
+          "line": "",
+          "emotion": "neutral",
+          "gaze_target": "bolt"
+        },
+        {
+          "actor": "bolt",
+          "action": "wave",
+          "start_frame": 70,
+          "end_frame": 141,
+          "line": "Ready, Pixel?",
+          "emotion": "neutral",
+          "gaze_target": "pixel"
+        },
+        {
+          "actor": "pixel",
+          "action": "nod",
+          "start_frame": 100,
+          "end_frame": 171,
+          "line": "Born ready.",
+          "emotion": "neutral",
+          "gaze_target": "bolt"
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 60,
+              "offset": [
+                0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 60,
+              "offset": [
+                -0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 179,
+            "position": [
+              0,
+              0.008,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.06
+          }
+        ]
+      }
+    },
+    {
+      "id": "take-02",
+      "start_frame": 180,
+      "end_frame": 360,
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "idle",
+          "start_frame": 10,
+          "end_frame": 76,
+          "line": "Wave on my cue.",
+          "emotion": "neutral",
+          "gaze_target": "pixel"
+        },
+        {
+          "actor": "pixel",
+          "action": "nod",
+          "start_frame": 90,
+          "end_frame": 151,
+          "line": "Got it.",
+          "emotion": "neutral",
+          "gaze_target": "bolt"
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 179,
+            "position": [
+              0,
+              0.008,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.06
+          }
+        ]
+      }
+    },
+    {
+      "id": "take-03",
+      "start_frame": 360,
+      "end_frame": 540,
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "idle",
+          "start_frame": 10,
+          "end_frame": 61,
+          "line": "Bow.",
+          "emotion": "neutral",
+          "gaze_target": "pixel"
+        },
+        {
+          "actor": "pixel",
+          "action": "wave",
+          "start_frame": 75,
+          "end_frame": 151,
+          "line": "",
+          "emotion": "neutral",
+          "gaze_target": "bolt"
+        },
+        {
+          "actor": "bolt",
+          "action": "idle",
+          "start_frame": 90,
+          "end_frame": 176,
+          "line": "",
+          "emotion": "suspicious",
+          "gaze_target": "pixel"
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 179,
+            "position": [
+              0,
+              0.008,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.06
+          }
+        ]
+      }
+    },
+    {
+      "id": "take-04",
+      "start_frame": 540,
+      "end_frame": 720,
+      "framing": {
+        "size": "close",
+        "subjects": [
+          "bolt"
+        ]
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "idle",
+          "start_frame": 10,
+          "end_frame": 91,
+          "line": "That was a wave.",
+          "emotion": "suspicious",
+          "gaze_target": "pixel"
+        },
+        {
+          "actor": "pixel",
+          "action": "idle",
+          "start_frame": 95,
+          "end_frame": 176,
+          "line": "You said wave!",
+          "emotion": "neutral",
+          "gaze_target": "bolt"
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0.03,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 179,
+            "position": [
+              0.03,
+              0.008,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.06
+          }
+        ]
+      }
+    },
+    {
+      "id": "take-05",
+      "start_frame": 720,
+      "end_frame": 900,
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "idle",
+          "start_frame": 10,
+          "end_frame": 71,
+          "line": "Fine. Wave.",
+          "emotion": "neutral",
+          "gaze_target": "pixel"
+        },
+        {
+          "actor": "pixel",
+          "action": "bow",
+          "start_frame": 80,
+          "end_frame": 151,
+          "line": "Like this?",
+          "emotion": "neutral",
+          "gaze_target": "bolt"
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 179,
+            "position": [
+              0,
+              0.008,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.06
+          }
+        ]
+      }
+    },
+    {
+      "id": "take-06",
+      "start_frame": 900,
+      "end_frame": 1080,
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "nod",
+          "start_frame": 10,
+          "end_frame": 71,
+          "line": "Perfect. Cut.",
+          "emotion": "neutral",
+          "gaze_target": "pixel"
+        },
+        {
+          "actor": "pixel",
+          "action": "wave",
+          "start_frame": 85,
+          "end_frame": 171,
+          "line": "One more take?",
+          "emotion": "neutral",
+          "gaze_target": "bolt"
+        },
+        {
+          "actor": "bolt",
+          "action": "look_down",
+          "start_frame": 100,
+          "end_frame": 176,
+          "line": "",
+          "emotion": "guilty"
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.03,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 179,
+            "position": [
+              0,
+              0.008,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.06
+          }
+        ]
+      }
+    }
+  ]
+}

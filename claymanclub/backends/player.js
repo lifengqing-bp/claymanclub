@@ -53,6 +53,16 @@ function walkSwing(p,frame){
   if(!amount)return 0;
   return 22*Math.sin(4*Math.PI*(frame-p.start_frame)/(p.end_frame-p.start_frame-1))*amount;
 }
+function walkLegPoints(p,frame,side){
+  const direction=side==='left'?-1:1;
+  const lift=Math.max(0,direction*walkSwing(p,frame)/22);
+  return [direction*(20+18*lift),580-14*lift,direction*40,635-28*lift];
+}
+function walkLegPath(p,frame,side){
+  if(!p || p.action!=='walk')return side==='left'?'M0 525L-40 635':'M0 525L40 635';
+  const [kx,ky,fx,fy]=walkLegPoints(p,frame,side);
+  return `M0 525L${kx} ${ky}L${fx} ${fy}`;
+}
 function stageActors(shot,frame){
   const offsets=Object.fromEntries(shot.cast.map(a=>[a,offsetAt(shot.actor_tracks.find(t=>t.actor===a),frame)]));
   const stageX=a=>(shot.cast.length===1?270:170+shot.cast.indexOf(a)*200)+960*offsets[a][0];
@@ -67,8 +77,11 @@ function stageActors(shot,frame){
     const swing=walkSwing(p,frame);
     actor.querySelector('[data-walk-arm]').setAttribute('transform',`rotate(${-swing} 0 425)`);
     actor.querySelector('[data-wave]').setAttribute('transform',`rotate(${gestureAngles(p,frame).wave+swing} 0 425)`);
-    for(const leg of actor.querySelectorAll('[data-walk-leg]'))
-      leg.setAttribute('transform',`rotate(${leg.getAttribute('data-walk-leg')==='left'?swing:-swing} 0 525)`);
+    for(const leg of actor.querySelectorAll('[data-walk-leg]')){
+      const side=leg.getAttribute('data-walk-leg');
+      leg.setAttribute('transform',`rotate(${side==='left'?swing:-swing} 0 525)`);
+      leg.querySelector('[data-legs]').setAttribute('d',walkLegPath(p,frame,side));
+    }
   }
   for(const name of picture.querySelectorAll('[data-name]')){
     const [x,y]=offsets[name.getAttribute('data-name')];
