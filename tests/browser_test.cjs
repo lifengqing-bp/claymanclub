@@ -326,6 +326,7 @@ test('story preserves cue, wrong gesture, reaction and punchline when seeking',a
   await frame(page,360+105);
   const wave=await page.locator('[data-wave="pixel"]').getAttribute('transform');
   assert.notEqual(wave,'rotate(0 0 425)');
+  const wrongDOM=await page.locator('#frame').innerHTML();
   const wrong=await picture(page,'story-wrong-wave');
   await frame(page,540+30);
   assert.equal(await page.locator('[data-actor]').count(),1);
@@ -333,7 +334,9 @@ test('story preserves cue, wrong gesture, reaction and punchline when seeking',a
   await frame(page,720+115);
   assert.equal(await page.locator('[data-upper="pixel"]').getAttribute('transform'),'rotate(30 0 525)');
   await frame(page,900+120);assert.match(await page.locator('#frame').textContent(),/One more take/);
-  await frame(page,360+105);assert.deepEqual(await picture(page,'story-wrong-return'),wrong);
+  await frame(page,360+105);
+  assert.equal(await page.locator('#frame').innerHTML(),wrongDOM,'same frame must reconstruct exactly the same SVG');
+  assert.deepEqual(await picture(page,'story-wrong-return'),wrong);
   await frame(page,1079);await page.locator('#play').click();await page.locator('#play').click();
   await frame(page,20);assert.deepEqual(await picture(page,'story-replay'),first);
 });

@@ -93,7 +93,7 @@ class StickFigureBackend(PresentationBackend):
                       f'<g data-walk-arm="" transform="rotate({-swing} 0 425)"><path d="M0 425L-55 475"/></g>',
                       f'<g data-wave="{escape(actor, quote=True)}" transform="rotate({joints["wave"]+swing} 0 425)"><path d="M0 425L55 475"/></g>',
                       '</g>', f'<g data-walk-leg="left" transform="rotate({swing} 0 525)"><path data-legs="" d="{left_leg}"/></g>',
-                      f'<g data-walk-leg="right" transform="rotate({-swing} 0 525)"><path data-legs="" d="{right_leg}"/></g>', '</g>', f'<text data-name="{escape(actor, quote=True)}" data-base-x="{x}" transform="translate({dx*960} {-dy*960})" x="{x}" y="710" fill="{color}" text-anchor="middle" font-size="23">{escape(actor)}</text>']
+                      f'<g data-walk-leg="right" transform="rotate({-swing} 0 525)"><path data-legs="" d="{right_leg}"/></g>', '</g>', f'<text text-rendering="geometricPrecision" data-name="{escape(actor, quote=True)}" data-base-x="{x}" transform="translate({dx*960} {-dy*960})" x="{x}" y="710" fill="{color}" text-anchor="middle" font-size="23">{escape(actor)}</text>']
         parts += ['</g>', '<rect width="540" height="100" fill="#101827"/>',
                   '<rect y="780" width="540" height="180" fill="#101827"/>', '<text x="35" y="65" fill="#e6efff" font-size="26">claymanclub · Stick figures</text>']
         # Subtitle wrapping by code points is adequate for the supplied short CJK lines.
