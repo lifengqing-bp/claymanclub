@@ -13,7 +13,7 @@ before(async () => {
   fs.mkdirSync(output, {recursive:true});
   // Unique directories preserve earlier evidence and the renderer's no-overwrite rule.
   thisRun = fs.mkdtempSync(path.join(output, 'run-'));
-  for (const [name, source] of [['story','examples/one-more-take.json'], ['stage','examples/stage-motion.json'], ['gestures','examples/gestures.json'], ['v05','examples/gaze-and-nod.json'], ['v04','examples/timed-performances.json'], ['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
+  for (const [name, source] of [['wireframe','examples/wireframe-scene.json'], ['story','examples/one-more-take.json'], ['stage','examples/stage-motion.json'], ['gestures','examples/gestures.json'], ['v05','examples/gaze-and-nod.json'], ['v04','examples/timed-performances.json'], ['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
     execFileSync(process.env.PYTHON || 'python3', ['-m','claymanclub','render',source,'--backend','stickfigure','--output',path.join(thisRun,name)], {cwd:root});
   }
   const crossing=JSON.parse(fs.readFileSync(path.join(root,'examples/stage-motion.json'),'utf8'));
@@ -372,4 +372,33 @@ test('elbows and knees are connected rigid hinges through walking, waving and re
   await frame(page,58);assert.deepEqual(await picture(page,'joints-walk-return'),walking);
   await frame(page,250);assert.deepEqual(await picture(page,'joints-wave-return'),waving);
   await page.reload();await frame(page,250);assert.deepEqual(await picture(page,'joints-wave-reload'),waving);
+});
+
+
+test('wireframe room and props move with the camera while subtitles stay fixed',async t=>{
+  const page=await open(t,'wireframe');
+  assert.equal(await page.locator('[data-camera-world] [data-prop]').count(),5);
+  assert.equal(await page.locator('[data-room-wireframe] [data-floor-grid]').count(),1);
+  assert.equal(await page.locator('[data-actor] [data-prop]').count(),0);
+  await frame(page,20);
+  const g=await geometry(page),scale=g.svg.height/960;
+  const clip={x:g.svg.x,y:g.svg.y+790*scale,width:g.svg.width,height:130*scale};
+  const subtitle=await page.screenshot({clip});
+  const initial=await page.locator('[data-prop="coffee-table"]').boundingBox();
+  await frame(page,100);
+  const moved=await page.locator('[data-prop="coffee-table"]').boundingBox();
+  assert.notDeepEqual(initial,moved,'camera moves scene props');
+  assert.deepEqual(await page.screenshot({clip}),subtitle);
+  const geometryMatches=await page.evaluate(()=>{
+    const world=document.querySelector('[data-camera-world]').getCTM();
+    return [...document.querySelectorAll('[data-prop]')].every(p=>{
+      const m=p.getCTM();return ['a','b','c','d','e','f'].every(k=>Math.abs(world[k]-m[k])<1e-9);
+    });
+  });
+  assert.ok(geometryMatches,'all props inherit the same world transform');
+  const snapshot=await picture(page,'wireframe-room');
+  await frame(page,250);await frame(page,100);
+  assert.deepEqual(await picture(page,'wireframe-return'),snapshot);
+  await page.reload();await frame(page,100);
+  assert.deepEqual(await picture(page,'wireframe-reload'),snapshot);
 });

@@ -126,3 +126,14 @@ python3 scripts/export_video.py examples/one-more-take.json --output outputs/one
 双臂、双腿均使用两段刚性线段，新增两个肘关节和两个膝关节。挥手由肩抬臂、肘带动前臂摆动；行走时双肘弯曲、双膝交替屈伸。圆点标示关节位置。
 
 复用 `examples/stage-motion.json` 和上面的导出命令即可观看；故事协议没有增加后端专用关节坐标。骨段不拉伸，所有姿态依旧按绝对帧确定。
+
+## 线框空间与道具（火柴人后端 0.8）
+
+```sh
+python3 -m claymanclub render examples/wireframe-scene.json --backend stickfigure --output outputs/wireframe-scene
+python3 scripts/export_video.py examples/wireframe-scene.json --output outputs/wireframe-scene.mp4
+```
+
+`wireframe_lounge` 通过墙角、疏密地面线、窗框、桌椅、书架和盆栽表现空间。道具使用细线，角色使用较粗高亮线；头部遮住背后的布景线，避免线条穿过表情。
+场景和道具一起运镜，字幕与 UI 固定。旧 `robot_lounge` 保留原画面，新场景仅需更换已有 `scene` ID。
+这是二维线框布景：尚无真实三维投影、深度排序、碰撞、坐下或拿取道具动作。
