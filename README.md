@@ -30,7 +30,7 @@ python3 -m unittest discover -s tests -v
 
 - `claymanclub/backend.py`：PresentationBackend、Capabilities、RenderResult。
 - `claymanclub/pipeline.py`：与后端无关的校验及调用流程。
-- `claymanclub/validation.py`：v0.2/v0.3 故事协议校验。
+- `claymanclub/validation.py`：v0.2/v0.3/v0.4 故事协议校验。
 - `claymanclub/camera.py`：摄像机轨迹校验、能力协商与确定性采样。
 - `claymanclub/backends/stickfigure.py`：SVG 与 HTML 分镜后端。
 - `examples/`：后端无关的能力词汇和示例故事。
@@ -67,3 +67,12 @@ Linux 建议安装 `fonts-noto-cjk` 以正确显示示例中文。测试直接�
 GitHub Actions 将该目录作为 `chromium-camera-evidence` 保存 30 天。
 
 验证结果、已修复问题与关键帧截图见 [浏览器验证记录](docs/browser-validation/README.md)。
+
+## 定时表演预览（v0.4）
+
+```sh
+python3 -m claymanclub render examples/timed-performances.json --backend stickfigure --output outputs/timed-preview
+```
+
+打开生成的 index.html：前 20 帧为停顿，20–119 帧显示第一句，120–169 帧切换同一角色的情绪和对白，170 帧起恢复默认姿势。拖动进度可反向重现相同画面，摄像机持续按绝对帧采样。
+这是离散姿势切换，尚无连续动作或配音。旧版示例和播放行为继续保留。

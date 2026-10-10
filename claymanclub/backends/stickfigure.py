@@ -4,19 +4,21 @@ import json
 from html import escape
 from pathlib import Path
 from ..camera import preflight_camera, sample_camera
+from ..performance import active_performances, performance_boundaries, preflight_performances
 from ..backend import Capabilities, PresentationBackend, RenderResult
 
 
 class StickFigureBackend(PresentationBackend):
-    name, version = 'stickfigure', '0.2'
+    name, version = 'stickfigure', '0.3'
     capabilities = Capabilities(
         frozenset({'idle', 'look_at_partner', 'look_down', 'nod'}),
         frozenset({'neutral', 'suspicious', 'guilty', 'surprised'}),
         frozenset({'wide', 'close'}), 2, 'html-svg-storyboard',
-        frozenset({'framing_2d'}), frozenset({'linear'}))
+        frozenset({'framing_2d'}), frozenset({'linear'}), timed_performances=True)
 
     def preflight(self, episode):
         preflight_camera(episode, self.capabilities)
+        preflight_performances(episode, self.capabilities)
         if len(episode['cast']) > self.capabilities.max_cast:
             raise ValueError('stickfigure supports at most two actors')
         # This demo has one implemented set; actors are procedural and need no models.
@@ -34,6 +36,7 @@ class StickFigureBackend(PresentationBackend):
                     raise ValueError('look_at_partner requires two actors')
 
     def frame(self, episode, shot, local_frame=0):
+        performances = active_performances(shot, episode['schema_version'], local_frame)
         subjects = shot['framing']['subjects']
         visible = episode['cast'] if shot['framing']['size'] == 'wide' else subjects
         state = sample_camera(shot.get('camera'), local_frame)
@@ -45,7 +48,7 @@ class StickFigureBackend(PresentationBackend):
                  f'<g data-camera-world="" transform="{transform}">',
                  '<rect x="35" y="120" width="470" height="650" rx="24" fill="#1b2940"/>',
                  '<path d="M35 660H505" stroke="#52647c"/>']
-        by_actor = {p['actor']: p for p in shot['performances']}
+        by_actor = {p['actor']: p for p in performances}
         for index, actor in enumerate(visible):
             x = 270 if len(visible) == 1 else 170 + index * 200
             p = by_actor.get(actor, {'action': 'idle', 'emotion': 'neutral'})
@@ -65,7 +68,7 @@ class StickFigureBackend(PresentationBackend):
         parts += ['</g>', '<rect width="540" height="100" fill="#101827"/>',
                   '<rect y="780" width="540" height="180" fill="#101827"/>', '<text x="35" y="65" fill="#e6efff" font-size="26">claymanclub · Stick figures</text>']
         # Subtitle wrapping by code points is adequate for the supplied short CJK lines.
-        lines = [p['actor'] + ': ' + p['line'] for p in shot['performances'] if p['line']]
+        lines = [p['actor'] + ': ' + p['line'] for p in performances if p['line']]
         rows = [line[i:i+22] for line in lines for i in range(0, len(line), 22)]
         for i, row in enumerate(rows):
             parts.append(f'<text x="40" y="{815+i*31}" fill="#fff" font-size="23">{escape(row)}</text>')
@@ -78,7 +81,7 @@ class StickFigureBackend(PresentationBackend):
         manifest = {'backend': self.name, 'backend_version': self.version,
                     'format': self.capabilities.output_format,
                     'episode_sha256': hashlib.sha256(json.dumps(episode, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
-                    'limitations': ['Static poses per shot; nod is a lowered-head key pose.',
+                    'limitations': ['Discrete performance poses; nod is a lowered-head key pose.',
                                     'No audio, lip sync, continuous character motion or video export.'],
                     'fps': episode['fps'], 'duration_frames': episode['duration_frames'], 'shots': []}
         preview_shots = []
@@ -86,17 +89,23 @@ class StickFigureBackend(PresentationBackend):
             filename = f'shot-{i+1:03}.svg'  # Never use user IDs as output paths.
             svg = self.frame(episode, shot)
             (output / filename).write_text(svg, encoding='utf-8')
-            preview_shots.append({'svg': svg, 'camera': shot.get('camera'),
-                                  'start': shot['start_frame'], 'end': shot['end_frame']})
+            preview = {'camera': shot.get('camera'),
+                       'start': shot['start_frame'], 'end': shot['end_frame']}
+            if episode['schema_version'] == '0.4':
+                preview['poses'] = [{'start': f, 'svg': svg if f == 0 else self.frame(episode, shot, f)}
+                                    for f in performance_boundaries(shot, episode['schema_version'])]
+            else:
+                preview['svg'] = svg
+            preview_shots.append(preview)
             manifest['shots'].append({'file': filename, 'start': shot['start_frame'], 'end': shot['end_frame'],
-                                      'camera': shot.get('camera')})
+                                      'camera': shot.get('camera'), 'performances': shot['performances']})
         (output / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
         data = json.dumps({'fps': episode['fps'], 'duration_frames': episode['duration_frames'],
                            'shots': preview_shots}).replace('<', '\\u003c')
         player = Path(__file__).with_name('player.js').read_text(encoding='utf-8')
         html = '''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>claymanclub preview</title>
 <style>body{background:#101827;color:#eee;font:16px system-ui;text-align:center}svg{display:block;margin:auto;width:min(95vw,42.1875vh);height:auto;overflow:hidden}button,input{margin:8px}input{width:45vw}</style>
-<h2>claymanclub · 火柴人分镜预览</h2><p>静态角色姿势 · 二维运镜 · 无音频 · 非最终视频</p>
+<h2>claymanclub · 火柴人分镜预览</h2><p>离散表演姿势 · 二维运镜 · 无音频 · 非最终视频</p>
 <div id="frame" role="img" aria-label="Storyboard frame"></div><div><button id="play">播放</button><input id="seek" aria-label="Frame" type="range" min="0" value="0"><span id="time"></span></div>
 <script>const plan=''' + data + ';\n' + player + '</script>'
         (output / 'index.html').write_text(html, encoding='utf-8')

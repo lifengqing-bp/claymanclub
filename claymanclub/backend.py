@@ -13,6 +13,7 @@ class Capabilities:
     output_format: str
     camera_spaces: frozenset[str] = frozenset()
     camera_interpolations: frozenset[str] = frozenset()
+    timed_performances: bool = False
 
 
 @dataclass(frozen=True)

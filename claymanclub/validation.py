@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 from .camera import validate_camera
+from .performance import validate_performances
 
 
 def require(condition, message):
@@ -17,7 +18,7 @@ def positive_int(value):
 
 def validate(episode, catalog):
     require(isinstance(episode, dict), 'episode must be an object')
-    require(episode.get('schema_version') in ('0.2', '0.3'), 'unsupported schema_version')
+    require(episode.get('schema_version') in ('0.2', '0.3', '0.4'), 'unsupported schema_version')
     require(isinstance(episode.get('episode_id'), str) and episode['episode_id'], 'episode_id required')
     require(positive_int(episode.get('fps')), 'fps must be a positive integer')
     require(positive_int(episode.get('duration_frames')), 'duration_frames must be a positive integer')
@@ -51,12 +52,14 @@ def validate(episode, catalog):
         for performance in performances:
             require(isinstance(performance, dict), f'{sid}: performance must be an object')
             actor = performance.get('actor')
-            require(isinstance(actor, str) and actor in cast and actor not in actors,
-                    f'{sid}: actor must be in cast and appear at most once')
+            require(isinstance(actor, str) and actor in cast, f'{sid}: actor must be in cast')
+            require(episode['schema_version'] == '0.4' or actor not in actors,
+                    f'{sid}: legacy actor must appear at most once')
             actors.add(actor)
             for field, group in [('action', 'actions'), ('emotion', 'emotions')]:
                 require(performance.get(field) in catalog[group], f'{sid}: unknown {field}')
             require(isinstance(performance.get('line'), str), f'{sid}: line must be a string')
+        validate_performances(shot, episode['schema_version'])
         cursor = end
     require(cursor == episode['duration_frames'], 'shots must cover duration_frames exactly')
 

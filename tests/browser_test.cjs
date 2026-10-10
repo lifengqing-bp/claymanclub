@@ -13,7 +13,7 @@ before(async () => {
   fs.mkdirSync(output, {recursive:true});
   // Unique directories preserve earlier evidence and the renderer's no-overwrite rule.
   thisRun = fs.mkdtempSync(path.join(output, 'run-'));
-  for (const [name, source] of [['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
+  for (const [name, source] of [['v04','examples/timed-performances.json'], ['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
     execFileSync(process.env.PYTHON || 'python3', ['-m','claymanclub','render',source,'--backend','stickfigure','--output',path.join(thisRun,name)], {cwd:root});
   }
   browser = await chromium.launch({headless:true, channel:'chromium'});
@@ -154,4 +154,33 @@ test('narrow viewport keeps the whole SVG and controls reachable',async t=>{
   for(const r of g.overlays) assert.ok(r.x>=g.svg.x && r.x+r.width<=g.svg.x+g.svg.width,'overlay text is not cropped');
   await page.locator('#play').click(); await page.clock.runFor(100);
   assert.ok(Number(await page.locator('#seek').inputValue())>90);
+});
+
+
+test('timed performances switch at exclusive boundaries and replay deterministically',async t=>{
+  const page=await open(t,'v04');
+  const content=()=>page.locator('#frame').textContent();
+  const empty=await picture(page,'timed-000');
+  await frame(page,19); assert.doesNotMatch(await content(),/我的充电器|等等/);
+  await frame(page,20); assert.match(await content(),/我的充电器/);
+  const first=await picture(page,'timed-020');
+  await frame(page,119); assert.match(await content(),/我的充电器/);
+  await frame(page,120); assert.match(await content(),/等等/);
+  assert.doesNotMatch(await content(),/我的充电器/);
+  const second=await picture(page,'timed-120');
+  await frame(page,170); assert.doesNotMatch(await content(),/我的充电器|等等/);
+  await frame(page,200); assert.match(await content(),/我只是/);
+  await frame(page,120); assert.deepEqual(await picture(page,'timed-backward'),second);
+  await frame(page,20); assert.deepEqual(await picture(page,'timed-first-return'),first);
+  await frame(page,119); await page.locator('#play').click(); await page.clock.runFor(80);
+  await page.locator('#play').click(); assert.match(await content(),/等等/);
+  const at=Number(await page.locator('#seek').inputValue());
+  const played=await picture(page,'timed-played');
+  await frame(page,0); await frame(page,at);
+  assert.deepEqual(await picture(page,'timed-seek-parity'),played);
+  await frame(page,899); await page.locator('#play').click();
+  assert.equal(await page.locator('#seek').inputValue(),'0');
+  assert.deepEqual(await picture(page,'timed-replay'),empty);
+  await page.reload(); await frame(page,120);
+  assert.deepEqual(await picture(page,'timed-reload'),second);
 });
