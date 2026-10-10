@@ -107,3 +107,15 @@ python3 scripts/export_video.py examples/stage-motion.json --output outputs/clay
 视频导出是可选 Linux 工具，需要系统 `librsvg-2`、Cairo 和支持 libx264 的 FFmpeg；逐帧调用真实 SVG 后端，再栅格化编码，不录制鼠标或播放器控件。不同 SVG 栅格化器的字体与抗锯齿可有差异，动作采样规则一致。中文示例导出还需系统安装相应 CJK 字体。
 
 位移轨迹与动作独立组合，按绝对帧采样；尚无脚步锁定、碰撞、空间深度或骨骼混合。
+
+## 第一支叙事样片：《再来一条 / One More Take》
+
+```sh
+python3 -m claymanclub render examples/one-more-take.json --backend stickfigure --output outputs/one-more-take
+python3 scripts/export_video.py examples/one-more-take.json --output outputs/one-more-take.mp4
+```
+
+36 秒、六个镜头：到场 → 约定口令 → 做错动作 → 反应近景 → 再次做错 → 收尾。
+复用 walk、wave、nod、bow 和 look_down；没有为这支片子增加专用动作或协议字段。
+火柴人后端 0.6.1 为 walk 增加交替抬脚和屈膝，保留首末中立、两周期和绝对帧语义；仍不提供脚部锁定。
+英文字幕、无音频。分镜与验收记录见 [样片说明](docs/one-more-take.md)。

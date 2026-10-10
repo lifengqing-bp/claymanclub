@@ -8,5 +8,9 @@ for(const sample of expected.samples){
   offset.forEach((x,i)=>assert.ok(Math.abs(x-sample.offset[i])<1e-12));
   const swing=vm.runInContext(`walkSwing(${JSON.stringify(expected.performance)},${sample.frame})`,context);
   assert.ok(Math.abs(swing-sample.swing)<1e-10);
+  for(const side of ['left','right']){
+    const points=vm.runInContext(`walkLegPoints(${JSON.stringify(expected.performance)},${sample.frame},'${side}')`,context);
+    points.forEach((x,i)=>assert.ok(Math.abs(x-sample.legs[side][i])<1e-10));
+  }
 }
 console.log('staging: Python/JS offset and walk parity passed');
