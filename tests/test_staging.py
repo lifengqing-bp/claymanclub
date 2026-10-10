@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import replace
 from pathlib import Path
 from claymanclub.staging import sample_offset
-from claymanclub.backends.gestures import walk_swing
+from claymanclub.backends.gestures import walk_swing, walk_leg_points, walk_leg_path
 from claymanclub.backends.stickfigure import StickFigureBackend
 from claymanclub.pipeline import render_episode
 from claymanclub.validation import validate
@@ -88,5 +88,33 @@ class StagingTests(unittest.TestCase):
             expected=Path(d)/'samples.json'
             expected.write_text(json.dumps({'track':shot['actor_tracks'][0],'performance':shot['performances'][0],
                 'samples':[{'frame':f/2,'offset':sample_offset(shot['actor_tracks'][0],f/2),
-                            'swing':walk_swing(shot['performances'][0],f/2)} for f in range(-2,365)]}))
+                            'swing':walk_swing(shot['performances'][0],f/2),
+                            'legs':{side:walk_leg_points(shot['performances'][0],f/2,side) for side in ('left','right')}} for f in range(-2,365)]}))
             subprocess.run(['node',str(ROOT/'tests/staging_test.cjs'),str(output.entrypoint),str(expected)],check=True)
+
+    def test_walk_lifts_alternate_and_reset(self):
+        p=self.episode['shots'][0]['performances'][0]
+        for frame in [-1,20,120,121]:
+            self.assertEqual(walk_leg_points(p,frame,'left'),[-20,580,-40,635])
+            self.assertEqual(walk_leg_points(p,frame,'right'),[20,580,40,635])
+        for frame, lifted in [(32.5,'right'),(57.5,'left'),(82.5,'right'),(107.5,'left')]:
+            for side in ('left','right'):
+                kx,ky,fx,fy=walk_leg_points(p,frame,side)
+                if side==lifted:
+                    self.assertLess(fy,635)
+                    self.assertLess(ky,580)
+                    self.assertGreater(abs(kx),20)
+                else:self.assertEqual(fy,635)
+        self.assertEqual(walk_leg_path(None,58,'left'),'M0 525L-40 635')
+
+    def test_story_renders_and_keeps_position_across_cuts(self):
+        episode=json.loads((ROOT/'examples/one-more-take.json').read_text())
+        validate(episode,self.catalog)
+        self.assertEqual(episode['duration_frames']/episode['fps'],36)
+        for before,after in zip(episode['shots'],episode['shots'][1:]):
+            for track,following in zip(before['actor_tracks'],after['actor_tracks']):
+                self.assertEqual(sample_offset(track,179),sample_offset(following,0))
+        backend=StickFigureBackend()
+        with tempfile.TemporaryDirectory() as d:
+            result=render_episode(episode,self.catalog,backend,Path(d)/'out')
+            self.assertTrue(result.entrypoint.exists())
