@@ -11,7 +11,7 @@ def gesture_angles(performance, frame):
         phase = (frame - performance['start_frame']) / (performance['end_frame'] - performance['start_frame'] - 1)
         lift = min(1, 4 * phase, 4 * (1 - phase))
         lift = lift * lift * (3 - 2 * lift)
-        wave = -120 * lift + 20 * math.sin(8 * math.pi * phase) * amount
+        wave = -55 * lift
     return {'bow': bow, 'wave': wave}
 
 
@@ -25,17 +25,31 @@ def walk_swing(performance, frame):
     return 22 * math.sin(4 * math.pi * phase) * amount
 
 
+
+def joint_angles(performance, frame):
+    """Four local hinge angles; zero means a straight limb."""
+    result = dict(elbow_left=0.0, elbow_right=0.0, knee_left=0.0, knee_right=0.0)
+    amount = motion_envelope(performance, frame)
+    if not amount:
+        return result
+    phase = (frame - performance['start_frame']) / (performance['end_frame'] - performance['start_frame'] - 1)
+    if performance['action'] == 'wave':
+        lift = min(1, 4 * phase, 4 * (1 - phase))
+        lift = lift * lift * (3 - 2 * lift)
+        result['elbow_right'] = -85 * lift + 20 * math.sin(8 * math.pi * phase) * amount
+    elif performance['action'] == 'walk':
+        stride = math.sin(4 * math.pi * phase)
+        result['elbow_left'] = 35 * amount
+        result['elbow_right'] = -35 * amount
+        result['knee_left'] = 70 * max(0, -stride) * amount
+        result['knee_right'] = -70 * max(0, stride) * amount
+    return result
+
+
 def walk_leg_points(performance, frame, side):
-    """Small procedural knee/foot lift; no skeleton or planted-foot solver."""
+    """Local knee and foot after knee rotation; thigh remains rigid."""
     direction = -1 if side == 'left' else 1
-    swing = walk_swing(performance, frame)
-    lift = max(0, direction * swing / 22)
-    return [direction * (20 + 18 * lift), 580 - 14 * lift,
-            direction * 40, 635 - 28 * lift]
-
-
-def walk_leg_path(performance, frame, side):
-    if not performance or performance['action'] != 'walk':
-        return 'M0 525L-40 635' if side == 'left' else 'M0 525L40 635'
-    kx, ky, fx, fy = walk_leg_points(performance, frame, side)
-    return f'M0 525L{kx} {ky}L{fx} {fy}'
+    angle = math.radians(joint_angles(performance, frame)['knee_' + side])
+    dx, dy = direction * 20, 55
+    return [dx, 580, dx + dx * math.cos(angle) - dy * math.sin(angle),
+            580 + dx * math.sin(angle) + dy * math.cos(angle)]

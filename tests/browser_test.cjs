@@ -235,7 +235,7 @@ test('wave and bow animate independent joints without moving feet or subtitles',
   const page=await open(t,'gestures');
   const upper=page.locator('[data-upper="pixel"]'), arm=page.locator('[data-wave="bolt"]');
   await frame(page,20);
-  const feet=await page.locator('[data-legs]').evaluateAll(es=>es.map(e=>e.getAttribute('d')));
+  const feet=await page.locator('[data-limb="leg"] path').evaluateAll(es=>es.map(e=>e.getAttribute('d')));
   const start=await picture(page,'gestures-start');
   const g=await geometry(page),scale=g.svg.height/960;
   const clip={x:g.svg.x,y:g.svg.y+790*scale,width:g.svg.width,height:130*scale};
@@ -243,10 +243,10 @@ test('wave and bow animate independent joints without moving feet or subtitles',
   await frame(page,70);
   assert.equal(await upper.getAttribute('transform'),'rotate(30 0 525)');
   const angle=Number((await arm.getAttribute('transform')).match(/rotate\(([^ ]+)/)[1]);
-  assert.ok(Math.abs(angle+120)<1e-10);
-  assert.deepEqual(await page.locator('[data-legs]').evaluateAll(es=>es.map(e=>e.getAttribute('d'))),feet);
+  assert.ok(Math.abs(angle+55)<1e-10);
+  assert.deepEqual(await page.locator('[data-limb="leg"] path').evaluateAll(es=>es.map(e=>e.getAttribute('d'))),feet);
   // Feet share only actor/world transforms; neither arm nor waist rotation contains them.
-  assert.equal(await page.locator('[data-upper] [data-legs]').count(),0);
+  assert.equal(await page.locator('[data-upper] [data-walk-leg]').count(),0);
   assert.deepEqual(await page.screenshot({clip}),subtitle);
   const peak=await picture(page,'gestures-peak'); assert.notDeepEqual(peak,start);
   await frame(page,120);
@@ -277,10 +277,9 @@ test('actor tracks and walking compose with camera; seek, cuts and replay remain
   await frame(page,58);
   const leg=await actor.locator('[data-walk-leg="left"]').getAttribute('transform');
   assert.notEqual(leg,'rotate(0 0 525)');
-  const kneePath=await actor.locator('[data-walk-leg="left"] [data-legs]').getAttribute('d');
-  assert.equal((kneePath.match(/L/g)||[]).length,2,'walking has a knee joint');
-  const footY=Number(kneePath.split(' ').at(-1));
-  assert.ok(footY<635,'swing foot lifts during the step');
+  const knee=actor.locator('[data-bend="knee"][data-side="left"]');
+  const kneeAngle=Number((await knee.getAttribute('transform')).match(/rotate\(([^ ]+)/)[1]);
+  assert.ok(kneeAngle>0,'swing knee bends independently of the hip');
   assert.deepEqual(await page.screenshot({clip}),subtitle);
   assert.notDeepEqual((await geometry(page)).matrix,g.matrix);
   const moving=await picture(page,'stage-moving');
@@ -339,4 +338,38 @@ test('story preserves cue, wrong gesture, reaction and punchline when seeking',a
   assert.deepEqual(await picture(page,'story-wrong-return'),wrong);
   await frame(page,1079);await page.locator('#play').click();await page.locator('#play').click();
   await frame(page,20);assert.deepEqual(await picture(page,'story-replay'),first);
+});
+
+
+test('elbows and knees are connected rigid hinges through walking, waving and reverse seek',async t=>{
+  const page=await open(t,'stage');
+  async function checkBones(){
+    const bones=await page.locator('[data-limb]').evaluateAll(limbs=>limbs.map(limb=>{
+      const upper=limb.querySelector('[data-proximal]'),lower=limb.querySelector('[data-distal]');
+      const point=(path,end)=>path.getPointAtLength(end?path.getTotalLength():0).matrixTransform(path.getCTM());
+      const a=point(upper,0),b=point(upper,1),c=point(lower,0),d=point(lower,1);
+      const m=upper.getCTM(),scale=Math.hypot(m.a,m.b);
+      return {kind:limb.dataset.limb,gap:Math.hypot(b.x-c.x,b.y-c.y),
+        upper:Math.hypot(b.x-a.x,b.y-a.y)/scale,lower:Math.hypot(d.x-c.x,d.y-c.y)/scale};
+    }));
+    assert.equal(bones.length,8);
+    for(const b of bones){
+      assert.ok(b.gap<0.001,'joint endpoints stay connected');
+      const length=b.kind==='arm'?Math.hypot(27.5,25):Math.hypot(20,55);
+      assert.ok(Math.abs(b.upper-length)<0.001);assert.ok(Math.abs(b.lower-length)<0.001);
+    }
+  }
+  await frame(page,58);await checkBones();
+  const knee=page.locator('[data-actor="bolt"] [data-bend="knee"][data-side="left"]');
+  assert.notEqual(await knee.getAttribute('transform'),'rotate(0 -20 580)');
+  const walking=await picture(page,'joints-walking');
+  await frame(page,250);await checkBones();
+  const elbow=page.locator('[data-actor="pixel"] [data-bend="elbow"][data-side="right"]');
+  assert.ok(Math.abs(Number((await elbow.getAttribute('transform')).match(/rotate\(([^ ]+)/)[1])+85)<1e-10);
+  const waving=await picture(page,'joints-waving');
+  await frame(page,300);await checkBones();
+  assert.equal(await elbow.getAttribute('transform'),'rotate(0 27.5 450)');
+  await frame(page,58);assert.deepEqual(await picture(page,'joints-walk-return'),walking);
+  await frame(page,250);assert.deepEqual(await picture(page,'joints-wave-return'),waving);
+  await page.reload();await frame(page,250);assert.deepEqual(await picture(page,'joints-wave-reload'),waving);
 });
