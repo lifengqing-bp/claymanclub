@@ -2,7 +2,7 @@
 
 可复用的故事生产系统：同一组角色、故事和表演意图，可交给平面火柴人、2D 动画、3D 引擎或其他呈现后端。
 
-**Unreal 是可选后端，不是核心依赖。** 当前可运行的是无第三方依赖的 Python 核心及 SVG 火柴人分镜后端；Unreal、配音、连续角色动画与视频导出尚未实现。
+**Unreal 是可选后端，不是核心依赖。** 当前可运行的是无第三方依赖的 Python 核心及 SVG 火柴人分镜后端；已支持定时程序化角色动画；Unreal 和配音尚未实现。
 
 ## 运行
 
@@ -14,7 +14,7 @@ python3 -m claymanclub render examples/episode-001.json --backend stickfigure --
 python3 -m unittest discover -s tests -v
 ```
 
-用浏览器打开 `outputs/preview/index.html`，可播放、暂停和拖动查看 30 秒分镜。第一镜头演示二维平移、旋转与缩放，拖动按绝对帧重算镜头状态。当前每个镜头使用静态关键姿势，无声音、口型或连续身体运动；不是 MP4。输出目录须为新目录，防止覆盖现有结果。
+用浏览器打开 `outputs/preview/index.html`，可播放、暂停和拖动查看 30 秒分镜。第一镜头演示二维平移、旋转与缩放，拖动按绝对帧重算镜头状态。episode-001 保留 v0.3 静态角色语义；连续动作请看下方 v0.5/v0.6 示例。无声音或口型。输出目录须为新目录，防止覆盖现有结果。
 
 测试全部使用 Python 标准库；若环境中有 Node，会额外执行生成播放器的控制与逐帧一致性测试（Node 不是运行依赖）。
 
@@ -30,7 +30,7 @@ python3 -m unittest discover -s tests -v
 
 - `claymanclub/backend.py`：PresentationBackend、Capabilities、RenderResult。
 - `claymanclub/pipeline.py`：与后端无关的校验及调用流程。
-- `claymanclub/validation.py`：v0.2–v0.5 故事协议校验。
+- `claymanclub/validation.py`：v0.2–v0.6 故事协议校验。
 - `claymanclub/camera.py`：摄像机轨迹校验、能力协商与确定性采样。
 - `claymanclub/backends/stickfigure.py`：SVG 与 HTML 分镜后端。
 - `examples/`：后端无关的能力词汇和示例故事。
@@ -39,7 +39,7 @@ python3 -m unittest discover -s tests -v
 
 ## 下一步
 
-先用火柴人验证剧情节奏，增加逐项表演时间和连续动作，再实现第二个真实呈现后端。两角色、单场景、三集 30–60 秒短剧是首次内容验证范围。
+先用火柴人验证剧情节奏，使用现有逐项表演、连续动作与位移制作短剧，再实现第二个真实呈现后端。两角色、单场景、三集 30–60 秒短剧是首次内容验证范围。
 
 GitHub：https://github.com/lifengqing-bp/claymanclub
 
@@ -94,3 +94,16 @@ python3 -m claymanclub render examples/gestures.json --backend stickfigure --out
 
 第一镜头 bolt 挥手、pixel 鞠躬；20 帧开始，120 帧回正。镜头持续运动，字幕保持固定。暂停、反向拖动和重播都按当前帧重算关节状态。
 动作仅使用同一套 performance 时间字段；不引入逐帧图片、额外动画时钟或新运行依赖。
+
+
+## 行走与真实视频 demo（v0.6）
+
+```sh
+python3 -m claymanclub render examples/stage-motion.json --backend stickfigure --output outputs/stage-preview
+python3 scripts/export_video.py examples/stage-motion.json --output outputs/claymanclub-demo.mp4
+```
+
+18 秒、540×960、30 fps：靠近 → 点头/挥手 → 挥手/鞠躬，三个镜头都有运镜。示例使用英文字幕，无配音。
+视频导出是可选 Linux 工具，需要系统 `librsvg-2`、Cairo 和支持 libx264 的 FFmpeg；逐帧调用真实 SVG 后端，再栅格化编码，不录制鼠标或播放器控件。不同 SVG 栅格化器的字体与抗锯齿可有差异，动作采样规则一致。中文示例导出还需系统安装相应 CJK 字体。
+
+位移轨迹与动作独立组合，按绝对帧采样；尚无脚步锁定、碰撞、空间深度或骨骼混合。

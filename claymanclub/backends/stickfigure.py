@@ -4,22 +4,24 @@ import json
 from html import escape
 from pathlib import Path
 from ..camera import preflight_camera, sample_camera
-from ..performance import active_performances, performance_boundaries, preflight_performances, nod_amount, TIMED_VERSIONS, ANIMATED_ACTIONS
-from .gestures import gesture_angles
+from ..performance import active_performances, performance_boundaries, preflight_performances, nod_amount, TIMED_VERSIONS, ANIMATED_ACTIONS, ANIMATED_VERSIONS
+from .gestures import gesture_angles, walk_swing
+from ..staging import preflight_tracks, sample_offset
 from ..backend import Capabilities, PresentationBackend, RenderResult
 
 
 class StickFigureBackend(PresentationBackend):
-    name, version = 'stickfigure', '0.5'
+    name, version = 'stickfigure', '0.6'
     capabilities = Capabilities(
-        frozenset({'idle', 'look_at_partner', 'look_down', 'nod', 'wave', 'bow'}),
+        frozenset({'idle', 'look_at_partner', 'look_down', 'nod', 'wave', 'bow', 'walk'}),
         frozenset({'neutral', 'suspicious', 'guilty', 'surprised'}),
         frozenset({'wide', 'close'}), 2, 'html-svg-storyboard',
         frozenset({'framing_2d'}), frozenset({'linear'}), timed_performances=True,
-        gaze_targets=True, animated_actions=ANIMATED_ACTIONS)
+        actor_spaces=frozenset({'stage_2d'}), gaze_targets=True, animated_actions=ANIMATED_ACTIONS)
 
     def preflight(self, episode):
         preflight_camera(episode, self.capabilities)
+        preflight_tracks(episode, self.capabilities)
         preflight_performances(episode, self.capabilities)
         if len(episode['cast']) > self.capabilities.max_cast:
             raise ValueError('stickfigure supports at most two actors')
@@ -38,7 +40,7 @@ class StickFigureBackend(PresentationBackend):
                     raise ValueError('look_at_partner requires two actors')
 
     def frame(self, episode, shot, local_frame=0):
-        animated = episode['schema_version'] == '0.5'
+        animated = episode['schema_version'] in ANIMATED_VERSIONS
         performances = active_performances(shot, episode['schema_version'], local_frame)
         subjects = shot['framing']['subjects']
         visible = episode['cast'] if shot['framing']['size'] == 'wide' else subjects
@@ -52,6 +54,11 @@ class StickFigureBackend(PresentationBackend):
                  '<rect x="35" y="120" width="470" height="650" rx="24" fill="#1b2940"/>',
                  '<path d="M35 660H505" stroke="#52647c"/>']
         by_actor = {p['actor']: p for p in performances}
+        spatial = episode['schema_version'] == '0.6'
+        tracks = {track['actor']: track for track in shot.get('actor_tracks', [])}
+        offsets = {a: sample_offset(tracks.get(a), local_frame) for a in episode['cast']}
+        stage_x = {a: (270 if len(episode['cast']) == 1 else 170 + i * 200) + offsets[a][0] * 960
+                   for i, a in enumerate(episode['cast'])}
         for index, actor in enumerate(visible):
             x = 270 if len(visible) == 1 else 170 + index * 200
             p = by_actor.get(actor, {'action': 'idle', 'emotion': 'neutral'})
@@ -60,21 +67,31 @@ class StickFigureBackend(PresentationBackend):
             gaze = (6 if episode['cast'].index(actor) == 0 else -6) if p['action'] == 'look_at_partner' else 0
             if 'gaze_target' in p:
                 gaze = 6 if episode['cast'].index(p['gaze_target']) > episode['cast'].index(actor) else -6
+            target = p.get('gaze_target')
+            if spatial and p['action'] == 'look_at_partner' and target is None:
+                target = next(a for a in episode['cast'] if a != actor)
+            if spatial and target is not None:
+                delta = stage_x[target] - stage_x[actor]
+                gaze = 6 if delta > 0 else -6 if delta < 0 else 0
+            dx, dy, _ = offsets[actor]
+            swing = walk_swing(p, local_frame) if spatial else 0
             head_offset = 15 * nod_amount(p, local_frame) if animated else 0
             joints = gesture_angles(p, local_frame) if animated else {'bow': 0, 'wave': 0}
-            parts += [f'<g transform="translate({x} 0)" stroke="{color}" stroke-width="7" stroke-linecap="round" fill="none">',
+            parts += [f'<g data-actor="{escape(actor, quote=True)}" data-base-x="{x}" transform="translate({x+dx*960} {-dy*960})" stroke="{color}" stroke-width="7" stroke-linecap="round" fill="none">',
                       f'<g data-upper="{escape(actor, quote=True)}" transform="rotate({joints["bow"]} 0 525)">',
                       f'<g data-head="{escape(actor, quote=True)}" transform="translate(0 {head_offset})">',
                       f'<circle cx="0" cy="{head_y}" r="40"/>',
-                      f'<path d="M{-15+gaze} {head_y-5}h1M{15+gaze} {head_y-5}h1"/>']
+                      f'<path data-eyes="{escape(actor, quote=True)}" data-head-y="{head_y}" d="M{-15+gaze} {head_y-5}h1M{15+gaze} {head_y-5}h1"/>']
             if p['emotion'] == 'surprised':
                 parts.append(f'<circle cx="0" cy="{head_y+19}" r="8" stroke-width="3"/>')
             else:
                 slope = -6 if p['emotion'] == 'suspicious' else 5 if p['emotion'] == 'guilty' else 0
                 parts.append(f'<path d="M-12 {head_y+20}l24 {slope}" stroke-width="3"/>')
-            parts += ['</g>', '<path d="M0 395V525M0 425L-55 475"/>',
-                      f'<g data-wave="{escape(actor, quote=True)}" transform="rotate({joints["wave"]} 0 425)"><path d="M0 425L55 475"/></g>',
-                      '</g>', '<path data-legs="" d="M0 525L-40 635M0 525L40 635"/>', '</g>', f'<text x="{x}" y="710" fill="{color}" text-anchor="middle" font-size="23">{escape(actor)}</text>']
+            parts += ['</g>', '<path d="M0 395V525"/>',
+                      f'<g data-walk-arm="" transform="rotate({-swing} 0 425)"><path d="M0 425L-55 475"/></g>',
+                      f'<g data-wave="{escape(actor, quote=True)}" transform="rotate({joints["wave"]+swing} 0 425)"><path d="M0 425L55 475"/></g>',
+                      '</g>', f'<g data-walk-leg="left" transform="rotate({swing} 0 525)"><path data-legs="" d="M0 525L-40 635"/></g>',
+                      f'<g data-walk-leg="right" transform="rotate({-swing} 0 525)"><path data-legs="" d="M0 525L40 635"/></g>', '</g>', f'<text data-name="{escape(actor, quote=True)}" data-base-x="{x}" transform="translate({dx*960} {-dy*960})" x="{x}" y="710" fill="{color}" text-anchor="middle" font-size="23">{escape(actor)}</text>']
         parts += ['</g>', '<rect width="540" height="100" fill="#101827"/>',
                   '<rect y="780" width="540" height="180" fill="#101827"/>', '<text x="35" y="65" fill="#e6efff" font-size="26">claymanclub · Stick figures</text>']
         # Subtitle wrapping by code points is adequate for the supplied short CJK lines.
@@ -92,7 +109,7 @@ class StickFigureBackend(PresentationBackend):
                     'format': self.capabilities.output_format,
                     'episode_sha256': hashlib.sha256(json.dumps(episode, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
                     'limitations': ['v0.5 supports procedural nod, wave and bow; older versions retain key poses.',
-                                    'No locomotion, skeletal animation, audio, lip sync or video export.'],
+                                    'v0.6 adds actor offsets and procedural walking; no foot locking, skeletal blending, audio or lip sync.'],
                     'fps': episode['fps'], 'duration_frames': episode['duration_frames'], 'shots': []}
         preview_shots = []
         for i, shot in enumerate(episode['shots']):
@@ -106,11 +123,16 @@ class StickFigureBackend(PresentationBackend):
                                     for f in performance_boundaries(shot, episode['schema_version'])]
             else:
                 preview['svg'] = svg
-            if episode['schema_version'] == '0.5':
+            if episode['schema_version'] in ANIMATED_VERSIONS:
                 preview['motions'] = [p for p in shot['performances'] if p['action'] in ANIMATED_ACTIONS]
+            if episode['schema_version'] == '0.6':
+                preview['actor_tracks'] = shot.get('actor_tracks', [])
+                preview['performances'] = shot['performances']
+                preview['cast'] = episode['cast']
             preview_shots.append(preview)
             manifest['shots'].append({'file': filename, 'start': shot['start_frame'], 'end': shot['end_frame'],
-                                      'camera': shot.get('camera'), 'performances': shot['performances']})
+                                      'camera': shot.get('camera'), 'performances': shot['performances'],
+                                      'actor_tracks': shot.get('actor_tracks', [])})
         (output / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
         data = json.dumps({'fps': episode['fps'], 'duration_frames': episode['duration_frames'],
                            'shots': preview_shots}).replace('<', '\\u003c')

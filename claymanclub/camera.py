@@ -14,7 +14,7 @@ def _number(value):
 def validate_camera(shot, schema_version):
     if 'camera' not in shot:
         return
-    _require(schema_version in ('0.3', '0.4', '0.5'), 'requires schema_version 0.3, 0.4 or 0.5')
+    _require(schema_version in ('0.3', '0.4', '0.5', '0.6'), 'requires schema_version 0.3, 0.4 or 0.5')
     camera = shot['camera']
     _require(isinstance(camera, dict), 'must be an object')
     _require(set(camera) == {'space', 'interpolation', 'keyframes'}, 'unknown or missing fields')

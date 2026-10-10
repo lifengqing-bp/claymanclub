@@ -19,7 +19,7 @@ function cameraTransform(state) {
   return `translate(270 480) scale(${state.zoom}) rotate(${state.rotation[2]}) translate(${-270-x*960} ${-480+y*960})`;
 }
 function motionEnvelope(performance, frame) {
-  if (!performance || !['nod','wave','bow'].includes(performance.action)) return 0;
+  if (!performance || !['nod','wave','bow','walk'].includes(performance.action)) return 0;
   const start=performance.start_frame,end=performance.end_frame;
   if(frame<=start || frame>=end-1) return 0;
   return (1-Math.cos(2*Math.PI*(frame-start)/(end-start-1)))/2;
@@ -38,6 +38,42 @@ function gestureAngles(performance, frame) {
     wave=-120*lift+20*Math.sin(8*Math.PI*phase)*amount;
   }
   return {bow,wave};
+}
+function offsetAt(track, frame) {
+  if(!track) return [0,0,0];
+  let left=track.keyframes[0],right=left;
+  for(const key of track.keyframes){right=key;if(frame<=key.frame)break;left=key;}
+  const span=right.frame-left.frame;
+  const a=span?Math.max(0,Math.min(1,(frame-left.frame)/span)):0;
+  return left.offset.map((v,i)=>(1-a)*v+a*right.offset[i]);
+}
+function walkSwing(p,frame){
+  if(!p || p.action!=='walk')return 0;
+  const amount=motionEnvelope(p,frame);
+  if(!amount)return 0;
+  return 22*Math.sin(4*Math.PI*(frame-p.start_frame)/(p.end_frame-p.start_frame-1))*amount;
+}
+function stageActors(shot,frame){
+  const offsets=Object.fromEntries(shot.cast.map(a=>[a,offsetAt(shot.actor_tracks.find(t=>t.actor===a),frame)]));
+  const stageX=a=>(shot.cast.length===1?270:170+shot.cast.indexOf(a)*200)+960*offsets[a][0];
+  for(const actor of picture.querySelectorAll('[data-actor]')){
+    const id=actor.getAttribute('data-actor'),[x,y]=offsets[id];
+    actor.setAttribute('transform',`translate(${Number(actor.getAttribute('data-base-x'))+x*960} ${-y*960})`);
+    const p=shot.performances.find(p=>p.actor===id && p.start_frame<=frame && frame<p.end_frame);
+    const target=p && (p.gaze_target || (p.action==='look_at_partner'?shot.cast.find(a=>a!==id):null));
+    const gaze=target?6*Math.sign(stageX(target)-stageX(id)):0;
+    const eyes=actor.querySelector('[data-eyes]'),headY=Number(eyes.getAttribute('data-head-y'));
+    eyes.setAttribute('d',`M${-15+gaze} ${headY-5}h1M${15+gaze} ${headY-5}h1`);
+    const swing=walkSwing(p,frame);
+    actor.querySelector('[data-walk-arm]').setAttribute('transform',`rotate(${-swing} 0 425)`);
+    actor.querySelector('[data-wave]').setAttribute('transform',`rotate(${gestureAngles(p,frame).wave+swing} 0 425)`);
+    for(const leg of actor.querySelectorAll('[data-walk-leg]'))
+      leg.setAttribute('transform',`rotate(${leg.getAttribute('data-walk-leg')==='left'?swing:-swing} 0 525)`);
+  }
+  for(const name of picture.querySelectorAll('[data-name]')){
+    const [x,y]=offsets[name.getAttribute('data-name')];
+    name.setAttribute('transform',`translate(${x*960} ${-y*960})`);
+  }
 }
 const picture=document.getElementById('frame'),seek=document.getElementById('seek'),button=document.getElementById('play');
 let playing=false,t=0,last=null,currentShot=null,currentPose=null;
@@ -58,6 +94,7 @@ function draw() {
       upper.querySelector('[data-wave]').setAttribute('transform',`rotate(${joints.wave} 0 425)`);
     }
   }
+  if(s.actor_tracks)stageActors(s,local);
   seek.value=f;
   document.getElementById('time').textContent=(f/plan.fps).toFixed(1)+'s';
 }

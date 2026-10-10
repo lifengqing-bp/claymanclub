@@ -1,6 +1,7 @@
 from pathlib import Path
 from .backend import PresentationBackend, RenderResult
 from .validation import validate
+from .staging import preflight_tracks
 from .camera import preflight_camera
 from .performance import preflight_performances
 
@@ -10,6 +11,7 @@ def render_episode(episode: dict, catalog: dict, backend: PresentationBackend,
     validate(episode, catalog)
     preflight_camera(episode, backend.capabilities)
     preflight_performances(episode, backend.capabilities)
+    preflight_tracks(episode, backend.capabilities)
     backend.preflight(episode)
     if output.exists():
         raise ValueError(f'Output already exists: {output}')
