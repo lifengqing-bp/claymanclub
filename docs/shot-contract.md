@@ -164,3 +164,48 @@ v0.6 继承 v0.5 的定时动作、视线与摄像机；旧版保留原有行为
 - 同一帧从相同故事生成相同 SVG；无随机布景、外部素材或独立场景时钟。
 
 道具移动、拿取、坐下、碰撞、物理或三维场景编辑不在本次范围。
+
+## v0.7 — locomotion, held props and weather
+
+v0.7 extends v0.6; v0.2–v0.6 keep their existing semantics. `run` and `jump`
+are timed actions (minimum 17 frames). `run` is a faster gait; `jump` is one
+rise/landing with neutral first/last displayed frames. Both compose with
+`actor_tracks`, camera and gaze. Horizontal travel remains explicit in the
+actor track. The 2D binding gives jump a 100-pixel vertical arc; it does not
+infer collisions, gravity, depth sorting or foot contact.
+
+Optional shot fields (rejected on older schema versions):
+
+```json
+{
+  "weather": {"kind": "rain"},
+  "interactions": [
+    {"actor": "bolt", "prop": "umbrella", "action": "hold",
+     "start_frame": 0, "end_frame": 150}
+  ]
+}
+```
+
+Weather kinds: `sunny`, `cloudy`, `overcast`, `windy`, `rain`, `storm`.
+One preset applies for the shot. The backend owns line geometry, density,
+colors and animation rate. Rain, cloud drift, gust lines and lightning are
+pure functions of shot-local absolute frame, with no random state. `storm`
+means visual thunderstorm only in the silent SVG backend, not thunder audio.
+Weather is camera-world content; titles, subtitles and player controls remain
+outside it. Weather resets at each shot and is absent when omitted.
+
+Interactions use shot-local half-open intervals `[start_frame,end_frame)`.
+The first supported semantic pair is `hold` + `umbrella`: a single shared
+prop is attached to the actor's right hand, coexisting with walking, running,
+jumping or gestures. No overlapping owners. Holding overrides the right arm
+and elbow pose; the other limbs and waist continue their action. The umbrella
+remains upright and follows the transformed wrist. This is an attachment
+state, not a pickup/drop animation: the prop appears/disappears at interval
+boundaries, and has no free-standing state outside them. The example holds it
+for complete shots to make these boundaries cuts. No collision or rain
+occlusion simulation. Unknown fields, weather, actions, props and unsupported
+backend capabilities are rejected before output creation. Future backends
+consume the same action, prop and weather semantics with their own bindings.
+
+`examples/weather-walk.json`: 30 seconds / 900 frames, six weather presets,
+walk/run/jump, handheld umbrella and simultaneous camera movement.

@@ -1,0 +1,721 @@
+{
+  "schema_version": "0.7",
+  "episode_id": "weather-walk",
+  "fps": 30,
+  "duration_frames": 900,
+  "scene": "wireframe_park",
+  "cast": [
+    "bolt",
+    "pixel"
+  ],
+  "shots": [
+    {
+      "id": "weather-1",
+      "start_frame": 0,
+      "end_frame": 150,
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "weather": {
+        "kind": "sunny"
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "walk",
+          "emotion": "neutral",
+          "line": "A fine day.",
+          "start_frame": 0,
+          "end_frame": 150
+        },
+        {
+          "actor": "pixel",
+          "action": "walk",
+          "emotion": "neutral",
+          "line": "",
+          "start_frame": 0,
+          "end_frame": 150
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 149,
+            "position": [
+              0.015,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.035
+          }
+        ]
+      }
+    },
+    {
+      "id": "weather-2",
+      "start_frame": 150,
+      "end_frame": 300,
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "weather": {
+        "kind": "cloudy"
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "run",
+          "emotion": "neutral",
+          "line": "Race you!",
+          "start_frame": 0,
+          "end_frame": 150
+        },
+        {
+          "actor": "pixel",
+          "action": "jump",
+          "emotion": "neutral",
+          "line": "",
+          "start_frame": 0,
+          "end_frame": 150
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 149,
+            "position": [
+              0.015,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.035
+          }
+        ]
+      }
+    },
+    {
+      "id": "weather-3",
+      "start_frame": 300,
+      "end_frame": 450,
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "weather": {
+        "kind": "overcast"
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "jump",
+          "emotion": "neutral",
+          "line": "Over the puddle!",
+          "start_frame": 0,
+          "end_frame": 150
+        },
+        {
+          "actor": "pixel",
+          "action": "walk",
+          "emotion": "neutral",
+          "line": "",
+          "start_frame": 0,
+          "end_frame": 150
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 149,
+            "position": [
+              0.015,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.035
+          }
+        ]
+      }
+    },
+    {
+      "id": "weather-4",
+      "start_frame": 450,
+      "end_frame": 600,
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "weather": {
+        "kind": "windy"
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "walk",
+          "emotion": "neutral",
+          "line": "Wind is rising.",
+          "start_frame": 0,
+          "end_frame": 150
+        },
+        {
+          "actor": "pixel",
+          "action": "walk",
+          "emotion": "neutral",
+          "line": "",
+          "start_frame": 0,
+          "end_frame": 150
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 149,
+            "position": [
+              0.015,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.035
+          }
+        ]
+      }
+    },
+    {
+      "id": "weather-5",
+      "start_frame": 600,
+      "end_frame": 750,
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "weather": {
+        "kind": "rain"
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "walk",
+          "emotion": "neutral",
+          "line": "Stay dry!",
+          "start_frame": 0,
+          "end_frame": 150
+        },
+        {
+          "actor": "pixel",
+          "action": "walk",
+          "emotion": "neutral",
+          "line": "",
+          "start_frame": 0,
+          "end_frame": 150
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 149,
+            "position": [
+              0.015,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.035
+          }
+        ]
+      },
+      "interactions": [
+        {
+          "actor": "bolt",
+          "action": "hold",
+          "prop": "umbrella",
+          "start_frame": 0,
+          "end_frame": 150
+        }
+      ]
+    },
+    {
+      "id": "weather-6",
+      "start_frame": 750,
+      "end_frame": 900,
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "weather": {
+        "kind": "storm"
+      },
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "run",
+          "emotion": "surprised",
+          "line": "Time to go home!",
+          "start_frame": 0,
+          "end_frame": 150
+        },
+        {
+          "actor": "pixel",
+          "action": "walk",
+          "emotion": "surprised",
+          "line": "",
+          "start_frame": 0,
+          "end_frame": 150
+        }
+      ],
+      "actor_tracks": [
+        {
+          "actor": "bolt",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "actor": "pixel",
+          "space": "stage_2d",
+          "interpolation": "linear",
+          "keyframes": [
+            {
+              "frame": 0,
+              "offset": [
+                -0.05,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 149,
+              "offset": [
+                0.04,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 149,
+            "position": [
+              0.015,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1.035
+          }
+        ]
+      },
+      "interactions": [
+        {
+          "actor": "bolt",
+          "action": "hold",
+          "prop": "umbrella",
+          "start_frame": 0,
+          "end_frame": 150
+        }
+      ]
+    }
+  ]
+}

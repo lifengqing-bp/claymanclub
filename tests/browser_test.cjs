@@ -13,9 +13,15 @@ before(async () => {
   fs.mkdirSync(output, {recursive:true});
   // Unique directories preserve earlier evidence and the renderer's no-overwrite rule.
   thisRun = fs.mkdtempSync(path.join(output, 'run-'));
-  for (const [name, source] of [['wireframe','examples/wireframe-scene.json'], ['story','examples/one-more-take.json'], ['stage','examples/stage-motion.json'], ['gestures','examples/gestures.json'], ['v05','examples/gaze-and-nod.json'], ['v04','examples/timed-performances.json'], ['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
+  for (const [name, source] of [['weather','examples/weather-walk.json'], ['wireframe','examples/wireframe-scene.json'], ['story','examples/one-more-take.json'], ['stage','examples/stage-motion.json'], ['gestures','examples/gestures.json'], ['v05','examples/gaze-and-nod.json'], ['v04','examples/timed-performances.json'], ['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
     execFileSync(process.env.PYTHON || 'python3', ['-m','claymanclub','render',source,'--backend','stickfigure','--output',path.join(thisRun,name)], {cwd:root});
   }
+  const attachment=JSON.parse(fs.readFileSync(path.join(root,'examples/weather-walk.json'),'utf8'));
+  Object.assign(attachment.shots[4].interactions[0],{start_frame:30,end_frame:120});
+  attachment.shots[4].performances[0].action='bow';
+  const attachmentSource=path.join(thisRun,'attachment.json');
+  fs.writeFileSync(attachmentSource,JSON.stringify(attachment));
+  execFileSync(process.env.PYTHON || 'python3',['-m','claymanclub','render',attachmentSource,'--backend','stickfigure','--output',path.join(thisRun,'attachment')],{cwd:root});
   const crossing=JSON.parse(fs.readFileSync(path.join(root,'examples/stage-motion.json'),'utf8'));
   crossing.shots[0].actor_tracks[0].keyframes.at(-1).offset[0]=0.3;
   delete crossing.shots[1].actor_tracks;
@@ -401,4 +407,70 @@ test('wireframe room and props move with the camera while subtitles stay fixed',
   assert.deepEqual(await picture(page,'wireframe-return'),snapshot);
   await page.reload();await frame(page,100);
   assert.deepEqual(await picture(page,'wireframe-reload'),snapshot);
+});
+
+test('v0.7 weather, jumping and held prop remain deterministic under camera and seek',async t=>{
+  const page=await open(t,'weather');
+  await frame(page,335);
+  const airborne=await page.locator('[data-actor="bolt"]').getAttribute('transform');
+  await frame(page,300);
+  assert.notEqual(await page.locator('[data-actor="bolt"]').getAttribute('transform'),airborne);
+  await frame(page,785); // lightning, run, moving camera, held umbrella
+  const pixels=await picture(page,'weather-storm-785');
+  const dom=await page.locator('#frame').innerHTML();
+  assert.equal(await page.locator('[data-lightning]').getAttribute('opacity'),'1');
+  const contact=await page.evaluate(()=>{
+    const a=document.querySelector('[data-actor="bolt"]');
+    const hand=a.querySelector('[data-limb="arm"][data-side="right"] [data-distal]');
+    const prop=a.querySelector('[data-held-prop]');
+    const h=hand.getPointAtLength(hand.getTotalLength()).matrixTransform(hand.getCTM());
+    const p=new DOMPoint(0,0).matrixTransform(prop.getCTM());
+    return Math.hypot(h.x-p.x,h.y-p.y);
+  });
+  assert.ok(contact<.001,'umbrella grip must match actual transformed wrist');
+  const geometryAt=await geometry(page);
+  await frame(page,825);
+  assert.equal(await page.locator('[data-lightning]').getAttribute('opacity'),'0');
+  assert.notDeepEqual(await picture(page,'weather-storm-825'),pixels);
+  assert.deepEqual((await geometry(page)).overlays,geometryAt.overlays);
+  await frame(page,599);
+  assert.equal(await page.locator('[data-held-prop][display="inline"]').count(),0);
+  await frame(page,600);
+  assert.equal(await page.locator('[data-held-prop][display="inline"]').count(),1);
+  assert.equal(await page.locator('[data-weather]').getAttribute('data-weather'),'rain');
+  await frame(page,785);
+  assert.equal(await page.locator('#frame').innerHTML(),dom);
+  assert.deepEqual(await picture(page,'weather-storm-return'),pixels);
+  await page.reload();await page.evaluate(()=>document.fonts.ready);await frame(page,785);
+  assert.deepEqual(await picture(page,'weather-storm-reload'),pixels);
+  await page.locator('#play').click();await page.clock.runFor(200);
+  await page.locator('#play').click();
+  const paused=await page.locator('#seek').inputValue();
+  const pausedPixels=await picture(page,'weather-paused');
+  await page.clock.runFor(200);
+  assert.equal(await page.locator('#seek').inputValue(),paused);
+  assert.deepEqual(await picture(page,'weather-paused-again'),pausedPixels);
+  await frame(page,899);await page.locator('#play').click();
+  assert.equal(await page.locator('#seek').inputValue(),'0');
+  assert.equal(await page.locator('[data-weather]').getAttribute('data-weather'),'sunny');
+});
+
+
+test('held prop starts and releases inside a shot; bow preserves wrist contact',async t=>{
+  const page=await open(t,'attachment');
+  for(const [f,count] of [[629,0],[630,1],[674,1],[719,1],[720,0],[674,1]]){
+    await frame(page,f);
+    assert.equal(await page.locator('[data-held-prop][display="inline"]').count(),count);
+    if(count){
+      const gap=await page.evaluate(()=>{
+        const a=document.querySelector('[data-actor="bolt"]');
+        const hand=a.querySelector('[data-limb="arm"][data-side="right"] [data-distal]');
+        const prop=a.querySelector('[data-held-prop]');
+        const h=hand.getPointAtLength(hand.getTotalLength()).matrixTransform(hand.getCTM());
+        const p=new DOMPoint(0,0).matrixTransform(prop.getCTM());
+        return Math.hypot(h.x-p.x,h.y-p.y);
+      });
+      assert.ok(gap<.001);
+    }
+  }
 });

@@ -19,7 +19,7 @@ function cameraTransform(state) {
   return `translate(270 480) scale(${state.zoom}) rotate(${state.rotation[2]}) translate(${-270-x*960} ${-480+y*960})`;
 }
 function motionEnvelope(performance, frame) {
-  if (!performance || !['nod','wave','bow','walk'].includes(performance.action)) return 0;
+  if (!performance || !['nod','wave','bow','walk','run','jump'].includes(performance.action)) return 0;
   const start=performance.start_frame,end=performance.end_frame;
   if(frame<=start || frame>=end-1) return 0;
   return (1-Math.cos(2*Math.PI*(frame-start)/(end-start-1)))/2;
@@ -48,10 +48,10 @@ function offsetAt(track, frame) {
   return left.offset.map((v,i)=>(1-a)*v+a*right.offset[i]);
 }
 function walkSwing(p,frame){
-  if(!p || p.action!=='walk')return 0;
+  if(!p || !['walk','run'].includes(p.action))return 0;
   const amount=motionEnvelope(p,frame);
   if(!amount)return 0;
-  return 22*Math.sin(4*Math.PI*(frame-p.start_frame)/(p.end_frame-p.start_frame-1))*amount;
+  return (p.action==='run'?34:22)*Math.sin((p.action==='run'?8:4)*Math.PI*(frame-p.start_frame)/(p.end_frame-p.start_frame-1))*amount;
 }
 function jointAngles(p,frame){
   const result={elbow_left:0,elbow_right:0,knee_left:0,knee_right:0};
@@ -61,12 +61,13 @@ function jointAngles(p,frame){
   if(p.action==='wave'){
     let lift=Math.min(1,4*phase,4*(1-phase));lift=lift*lift*(3-2*lift);
     result.elbow_right=-85*lift+20*Math.sin(8*Math.PI*phase)*amount;
-  }else if(p.action==='walk'){
-    const stride=Math.sin(4*Math.PI*phase);
+  }else if(['walk','run'].includes(p.action)){
+    const stride=Math.sin((p.action==='run'?8:4)*Math.PI*phase);
     result.elbow_left=35*amount;result.elbow_right=-35*amount;
     result.knee_left=70*Math.max(0,-stride)*amount;
     result.knee_right=-70*Math.max(0,stride)*amount;
   }
+  if(p.action==='jump')Object.assign(result,{elbow_left:45*amount,elbow_right:-45*amount,knee_left:65*amount,knee_right:-65*amount});
   return result;
 }
 function walkLegPoints(p,frame,side){
@@ -78,8 +79,8 @@ function stageActors(shot,frame){
   const stageX=a=>(shot.cast.length===1?270:170+shot.cast.indexOf(a)*200)+960*offsets[a][0];
   for(const actor of picture.querySelectorAll('[data-actor]')){
     const id=actor.getAttribute('data-actor'),[x,y]=offsets[id];
-    actor.setAttribute('transform',`translate(${Number(actor.getAttribute('data-base-x'))+x*960} ${-y*960})`);
     const p=shot.performances.find(p=>p.actor===id && p.start_frame<=frame && frame<p.end_frame);
+    actor.setAttribute('transform',`translate(${Number(actor.getAttribute('data-base-x'))+x*960} ${-y*960-jumpHeight(p,frame)})`);
     const target=p && (p.gaze_target || (p.action==='look_at_partner'?shot.cast.find(a=>a!==id):null));
     const gaze=target?6*Math.sign(stageX(target)-stageX(id)):0;
     const eyes=actor.querySelector('[data-eyes]'),headY=Number(eyes.getAttribute('data-head-y'));
@@ -94,7 +95,44 @@ function stageActors(shot,frame){
   }
   for(const name of picture.querySelectorAll('[data-name]')){
     const [x,y]=offsets[name.getAttribute('data-name')];
-    name.setAttribute('transform',`translate(${x*960} ${-y*960})`);
+    const p=shot.performances.find(p=>p.actor===name.getAttribute('data-name') && p.start_frame<=frame && frame<p.end_frame);
+    name.setAttribute('transform',`translate(${x*960} ${-y*960-jumpHeight(p,frame)})`);
+  }
+}
+function jumpHeight(p,frame){return p && p.action==='jump'?100*motionEnvelope(p,frame):0;}
+function weatherState(kind,frame){
+  return {cloud_x:(frame*.22)%620-80,wind_x:(frame*3)%720-120,
+    rain:Array.from({length:38},(_,i)=>[(i*73+frame*4)%600-30,180+(i*97+frame*13)%580]),
+    flash:kind==='storm' && frame%150>=35 && frame%150<41};
+}
+function umbrellaPose(bow){
+  const a=-65*Math.PI/180,b=-90*Math.PI/180,c=bow*Math.PI/180;
+  const x=27.5*Math.cos(a)-25*Math.sin(a)+27.5*Math.cos(b)-25*Math.sin(b);
+  const y=425+27.5*Math.sin(a)+25*Math.cos(a)+27.5*Math.sin(b)+25*Math.cos(b);
+  return [x*Math.cos(c)-(y-525)*Math.sin(c),525+x*Math.sin(c)+(y-525)*Math.cos(c)];
+}
+function stageEnvironment(shot,frame){
+  for(const actor of picture.querySelectorAll('[data-actor]')){
+    const id=actor.getAttribute('data-actor');
+    const held=shot.interactions.some(i=>i.actor===id && i.start_frame<=frame && frame<i.end_frame);
+    const prop=actor.querySelector('[data-held-prop]');
+    prop.setAttribute('display',held?'inline':'none');
+    if(held){
+      actor.querySelector('[data-wave]').setAttribute('transform','rotate(-65 0 425)');
+      actor.querySelector('[data-bend="elbow"][data-side="right"]').setAttribute('transform','rotate(-25 27.5 450)');
+      const p=shot.performances.find(p=>p.actor===id && p.start_frame<=frame && frame<p.end_frame);
+      const [x,y]=umbrellaPose(gestureAngles(p,frame).bow);
+      prop.setAttribute('transform',`translate(${x} ${y})`);
+    }
+  }
+  if(!shot.weather)return;
+  const state=weatherState(shot.weather.kind,frame),w=picture.querySelector('[data-weather]');
+  const clouds=w.querySelector('[data-clouds]'),wind=w.querySelector('[data-wind]'),lightning=w.querySelector('[data-lightning]');
+  if(clouds)clouds.setAttribute('transform',`translate(${state.cloud_x} 0)`);
+  if(wind)wind.setAttribute('transform',`translate(${state.wind_x} 0)`);
+  if(lightning)lightning.setAttribute('opacity',state.flash?'1':'0');
+  for(const drop of w.querySelectorAll('[data-rain]')){
+    const [x,y]=state.rain[Number(drop.getAttribute('data-rain'))];drop.setAttribute('d',`M${x} ${y}l-10 24`);
   }
 }
 const picture=document.getElementById('frame'),seek=document.getElementById('seek'),button=document.getElementById('play');
@@ -122,6 +160,7 @@ function draw() {
     }
   }
   if(s.actor_tracks)stageActors(s,local);
+  if(s.interactions)stageEnvironment(s,local);
   seek.value=f;
   document.getElementById('time').textContent=(f/plan.fps).toFixed(1)+'s';
 }
