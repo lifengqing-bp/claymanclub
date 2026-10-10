@@ -84,4 +84,13 @@ python3 -m claymanclub render examples/gaze-and-nod.json --backend stickfigure -
 ```
 
 第一镜头的两个角色互相注视；bolt 在 20–120 帧完成一次平滑点头（70 帧最低），运镜继续执行，字幕固定。可以暂停或来回拖动观察相同帧。
-只有 v0.5 的 nod 连续运动，旧版行为不变。当前是程序化头部动作，尚无完整肢体动画、音频或视频导出。
+v0.5 支持程序化 nod/wave/bow，旧版行为不变。尚无完整骨骼动画、音频或视频导出。
+
+## 挥手与鞠躬预览（v0.5）
+
+```sh
+python3 -m claymanclub render examples/gestures.json --backend stickfigure --output outputs/gestures-preview
+```
+
+第一镜头 bolt 挥手、pixel 鞠躬；20 帧开始，120 帧回正。镜头持续运动，字幕保持固定。暂停、反向拖动和重播都按当前帧重算关节状态。
+动作仅使用同一套 performance 时间字段；不引入逐帧图片、额外动画时钟或新运行依赖。

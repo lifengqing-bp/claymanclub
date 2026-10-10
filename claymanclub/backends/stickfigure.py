@@ -4,18 +4,19 @@ import json
 from html import escape
 from pathlib import Path
 from ..camera import preflight_camera, sample_camera
-from ..performance import active_performances, performance_boundaries, preflight_performances, nod_amount, TIMED_VERSIONS
+from ..performance import active_performances, performance_boundaries, preflight_performances, nod_amount, TIMED_VERSIONS, ANIMATED_ACTIONS
+from .gestures import gesture_angles
 from ..backend import Capabilities, PresentationBackend, RenderResult
 
 
 class StickFigureBackend(PresentationBackend):
-    name, version = 'stickfigure', '0.4'
+    name, version = 'stickfigure', '0.5'
     capabilities = Capabilities(
-        frozenset({'idle', 'look_at_partner', 'look_down', 'nod'}),
+        frozenset({'idle', 'look_at_partner', 'look_down', 'nod', 'wave', 'bow'}),
         frozenset({'neutral', 'suspicious', 'guilty', 'surprised'}),
         frozenset({'wide', 'close'}), 2, 'html-svg-storyboard',
         frozenset({'framing_2d'}), frozenset({'linear'}), timed_performances=True,
-        gaze_targets=True, animated_actions=frozenset({'nod'}))
+        gaze_targets=True, animated_actions=ANIMATED_ACTIONS)
 
     def preflight(self, episode):
         preflight_camera(episode, self.capabilities)
@@ -60,7 +61,9 @@ class StickFigureBackend(PresentationBackend):
             if 'gaze_target' in p:
                 gaze = 6 if episode['cast'].index(p['gaze_target']) > episode['cast'].index(actor) else -6
             head_offset = 15 * nod_amount(p, local_frame) if animated else 0
+            joints = gesture_angles(p, local_frame) if animated else {'bow': 0, 'wave': 0}
             parts += [f'<g transform="translate({x} 0)" stroke="{color}" stroke-width="7" stroke-linecap="round" fill="none">',
+                      f'<g data-upper="{escape(actor, quote=True)}" transform="rotate({joints["bow"]} 0 525)">',
                       f'<g data-head="{escape(actor, quote=True)}" transform="translate(0 {head_offset})">',
                       f'<circle cx="0" cy="{head_y}" r="40"/>',
                       f'<path d="M{-15+gaze} {head_y-5}h1M{15+gaze} {head_y-5}h1"/>']
@@ -69,7 +72,9 @@ class StickFigureBackend(PresentationBackend):
             else:
                 slope = -6 if p['emotion'] == 'suspicious' else 5 if p['emotion'] == 'guilty' else 0
                 parts.append(f'<path d="M-12 {head_y+20}l24 {slope}" stroke-width="3"/>')
-            parts += ['</g>', '<path d="M0 395V525M0 425L-55 475M0 425L55 475M0 525L-40 635M0 525L40 635"/>', '</g>', f'<text x="{x}" y="710" fill="{color}" text-anchor="middle" font-size="23">{escape(actor)}</text>']
+            parts += ['</g>', '<path d="M0 395V525M0 425L-55 475"/>',
+                      f'<g data-wave="{escape(actor, quote=True)}" transform="rotate({joints["wave"]} 0 425)"><path d="M0 425L55 475"/></g>',
+                      '</g>', '<path data-legs="" d="M0 525L-40 635M0 525L40 635"/>', '</g>', f'<text x="{x}" y="710" fill="{color}" text-anchor="middle" font-size="23">{escape(actor)}</text>']
         parts += ['</g>', '<rect width="540" height="100" fill="#101827"/>',
                   '<rect y="780" width="540" height="180" fill="#101827"/>', '<text x="35" y="65" fill="#e6efff" font-size="26">claymanclub · Stick figures</text>']
         # Subtitle wrapping by code points is adequate for the supplied short CJK lines.
@@ -86,7 +91,7 @@ class StickFigureBackend(PresentationBackend):
         manifest = {'backend': self.name, 'backend_version': self.version,
                     'format': self.capabilities.output_format,
                     'episode_sha256': hashlib.sha256(json.dumps(episode, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
-                    'limitations': ['v0.5 nod animates one head dip; older versions retain key poses.',
+                    'limitations': ['v0.5 supports procedural nod, wave and bow; older versions retain key poses.',
                                     'No locomotion, skeletal animation, audio, lip sync or video export.'],
                     'fps': episode['fps'], 'duration_frames': episode['duration_frames'], 'shots': []}
         preview_shots = []
@@ -102,7 +107,7 @@ class StickFigureBackend(PresentationBackend):
             else:
                 preview['svg'] = svg
             if episode['schema_version'] == '0.5':
-                preview['motions'] = [p for p in shot['performances'] if p['action'] == 'nod']
+                preview['motions'] = [p for p in shot['performances'] if p['action'] in ANIMATED_ACTIONS]
             preview_shots.append(preview)
             manifest['shots'].append({'file': filename, 'start': shot['start_frame'], 'end': shot['end_frame'],
                                       'camera': shot.get('camera'), 'performances': shot['performances']})

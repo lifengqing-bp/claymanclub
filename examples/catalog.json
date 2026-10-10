@@ -24,6 +24,12 @@
     },
     "nod": {
       "description": "Logical story capability; representation supplied by backend."
+    },
+    "wave": {
+      "description": "One timed greeting gesture; requires v0.5 and animated wave capability."
+    },
+    "bow": {
+      "description": "One timed bend and recovery; requires v0.5 and animated bow capability."
     }
   },
   "emotions": {

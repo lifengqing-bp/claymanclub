@@ -2,12 +2,15 @@
 import math
 
 TIMED_VERSIONS = ('0.4', '0.5')
+ANIMATED_ACTIONS = frozenset({'nod', 'wave', 'bow'})
 
 
 def validate_performances(shot, version):
     duration = shot['end_frame'] - shot['start_frame']
     intervals = {}
     for performance in shot['performances']:
+        if performance['action'] in ('wave', 'bow') and version != '0.5':
+            raise ValueError('wave and bow require schema_version 0.5')
         if 'gaze_target' in performance and version != '0.5':
             raise ValueError('gaze_target requires schema_version 0.5')
         if version not in TIMED_VERSIONS:
@@ -17,8 +20,10 @@ def validate_performances(shot, version):
         start, end = performance.get('start_frame'), performance.get('end_frame')
         if not (type(start) is int and type(end) is int and 0 <= start < end <= duration):
             raise ValueError('performance interval must be integers within [0, shot duration]')
-        if version == '0.5' and performance['action'] == 'nod' and end - start < 3:
-            raise ValueError('animated nod requires at least 3 frames')
+        if version == '0.5' and performance['action'] in ANIMATED_ACTIONS:
+            minimum = 17 if performance['action'] == 'wave' else 3
+            if end - start < minimum:
+                raise ValueError(f'animated {performance["action"]} requires at least {minimum} frames')
         intervals.setdefault(performance['actor'], []).append((start, end))
     for spans in intervals.values():
         spans.sort()
@@ -33,8 +38,8 @@ def preflight_performances(episode, capabilities):
             validate_gaze(p, episode['cast'], episode['schema_version'])
             if 'gaze_target' in p and not capabilities.gaze_targets:
                 raise ValueError('unsupported backend gaze targets')
-            if episode['schema_version'] == '0.5' and p['action'] == 'nod' and 'nod' not in capabilities.animated_actions:
-                raise ValueError('unsupported backend animated action: nod')
+            if episode['schema_version'] == '0.5' and p['action'] in ANIMATED_ACTIONS and p['action'] not in capabilities.animated_actions:
+                raise ValueError('unsupported backend animated action: ' + p['action'])
     if episode['schema_version'] in TIMED_VERSIONS and not capabilities.timed_performances:
         raise ValueError('unsupported backend timed performances')
 
@@ -65,12 +70,16 @@ def validate_gaze(performance, cast, version):
         raise ValueError('look_down conflicts with gaze_target')
 
 
-def nod_amount(performance, frame):
+def motion_envelope(performance, frame):
     """One smooth down/up cycle, with neutral first and last displayed frames."""
-    if performance is None or performance['action'] != 'nod':
+    if performance is None or performance['action'] not in ANIMATED_ACTIONS:
         return 0.0
     start, end = performance['start_frame'], performance['end_frame']
     if frame <= start or frame >= end - 1:
         return 0.0
     phase = (frame - start) / (end - start - 1)
     return (1 - math.cos(2 * math.pi * phase)) / 2
+
+
+def nod_amount(performance, frame):
+    return motion_envelope(performance, frame) if performance and performance['action'] == 'nod' else 0.0

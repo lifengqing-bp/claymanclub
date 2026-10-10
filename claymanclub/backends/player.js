@@ -18,11 +18,26 @@ function cameraTransform(state) {
   const [x,y]=state.position;
   return `translate(270 480) scale(${state.zoom}) rotate(${state.rotation[2]}) translate(${-270-x*960} ${-480+y*960})`;
 }
-function nodAmount(performance, frame) {
-  if (!performance || performance.action!=='nod') return 0;
+function motionEnvelope(performance, frame) {
+  if (!performance || !['nod','wave','bow'].includes(performance.action)) return 0;
   const start=performance.start_frame,end=performance.end_frame;
   if(frame<=start || frame>=end-1) return 0;
   return (1-Math.cos(2*Math.PI*(frame-start)/(end-start-1)))/2;
+}
+function nodAmount(performance, frame) {
+  return performance && performance.action==='nod' ? motionEnvelope(performance,frame) : 0;
+}
+function gestureAngles(performance, frame) {
+  const amount=motionEnvelope(performance,frame);
+  const bow=performance && performance.action==='bow' ? 30*amount : 0;
+  let wave=0;
+  if(performance && performance.action==='wave' && amount){
+    const phase=(frame-performance.start_frame)/(performance.end_frame-performance.start_frame-1);
+    let lift=Math.min(1,4*phase,4*(1-phase));
+    lift=lift*lift*(3-2*lift);
+    wave=-120*lift+20*Math.sin(8*Math.PI*phase)*amount;
+  }
+  return {bow,wave};
 }
 const picture=document.getElementById('frame'),seek=document.getElementById('seek'),button=document.getElementById('play');
 let playing=false,t=0,last=null,currentShot=null,currentPose=null;
@@ -38,6 +53,9 @@ function draw() {
     for(const head of picture.querySelectorAll('[data-head]')){
       const p=s.motions.find(p=>p.actor===head.getAttribute('data-head') && p.start_frame<=local && local<p.end_frame);
       head.setAttribute('transform',`translate(0 ${15*nodAmount(p,local)})`);
+      const joints=gestureAngles(p,local),upper=head.parentElement;
+      upper.setAttribute('transform',`rotate(${joints.bow} 0 525)`);
+      upper.querySelector('[data-wave]').setAttribute('transform',`rotate(${joints.wave} 0 425)`);
     }
   }
   seek.value=f;
