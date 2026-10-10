@@ -119,3 +119,10 @@ python3 scripts/export_video.py examples/one-more-take.json --output outputs/one
 复用 walk、wave、nod、bow 和 look_down；没有为这支片子增加专用动作或协议字段。
 火柴人后端 0.6.1 为 walk 增加交替抬脚和屈膝，保留首末中立、两周期和绝对帧语义；仍不提供脚部锁定。
 英文字幕、无音频。分镜与验收记录见 [样片说明](docs/one-more-take.md)。
+
+
+## 肘、膝关节（火柴人后端 0.7）
+
+双臂、双腿均使用两段刚性线段，新增两个肘关节和两个膝关节。挥手由肩抬臂、肘带动前臂摆动；行走时双肘弯曲、双膝交替屈伸。圆点标示关节位置。
+
+复用 `examples/stage-motion.json` 和上面的导出命令即可观看；故事协议没有增加后端专用关节坐标。骨段不拉伸，所有姿态依旧按绝对帧确定。

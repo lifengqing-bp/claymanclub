@@ -7,7 +7,7 @@ import unittest
 import xml.etree.ElementTree as ET
 from dataclasses import replace
 from pathlib import Path
-from claymanclub.backends.gestures import gesture_angles
+from claymanclub.backends.gestures import gesture_angles, joint_angles
 from claymanclub.backends.stickfigure import StickFigureBackend
 from claymanclub.pipeline import render_episode
 from claymanclub.validation import validate
@@ -26,10 +26,10 @@ class GestureTests(unittest.TestCase):
         for frame in (-1,20,120,121):
             self.assertEqual(gesture_angles(wave,frame),{'wave':0,'bow':0})
             self.assertEqual(gesture_angles(bow,frame),{'wave':0,'bow':0})
-        self.assertAlmostEqual(gesture_angles(wave,70)['wave'],-120)
+        self.assertAlmostEqual(gesture_angles(wave,70)['wave'],-55)
         self.assertEqual(gesture_angles(bow,70)['bow'],30)
         # The raised hand reverses direction during the greeting, rather than only lifting.
-        angles=[gesture_angles(wave,f)['wave'] for f in range(20,121)]
+        angles=[joint_angles(wave,f)['elbow_right'] for f in range(20,121)]
         slopes=[b-a for a,b in zip(angles,angles[1:])]
         self.assertGreaterEqual(sum(a*b<0 for a,b in zip(slopes,slopes[1:])),3)
 
@@ -62,9 +62,9 @@ class GestureTests(unittest.TestCase):
         root=ET.fromstring(backend.frame(self.episode,self.shot,70))
         upper=next(e for e in root.iter() if e.get('data-upper')=='pixel')
         self.assertEqual(upper.get('transform'),'rotate(30.0 0 525)')
-        self.assertFalse(any('data-legs' in e.attrib for e in upper.iter()))
+        self.assertFalse(any('data-walk-leg' in e.attrib for e in upper.iter()))
         arm=next(e for e in root.iter() if e.get('data-wave')=='bolt')
-        self.assertAlmostEqual(float(arm.get('transform').split()[0][7:]),-120)
+        self.assertAlmostEqual(float(arm.get('transform').split()[0][7:]),-55)
         self.assertEqual(self.episode,original)
         self.assertEqual(backend.frame(self.episode,self.shot,70),backend.frame(self.episode,self.shot,70))
 

@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import replace
 from pathlib import Path
 from claymanclub.staging import sample_offset
-from claymanclub.backends.gestures import walk_swing, walk_leg_points, walk_leg_path
+from claymanclub.backends.gestures import walk_swing, walk_leg_points, joint_angles
 from claymanclub.backends.stickfigure import StickFigureBackend
 from claymanclub.pipeline import render_episode
 from claymanclub.validation import validate
@@ -102,10 +102,10 @@ class StagingTests(unittest.TestCase):
                 kx,ky,fx,fy=walk_leg_points(p,frame,side)
                 if side==lifted:
                     self.assertLess(fy,635)
-                    self.assertLess(ky,580)
-                    self.assertGreater(abs(kx),20)
+                    self.assertEqual(ky,580)
+                    self.assertEqual(abs(kx),20)
                 else:self.assertEqual(fy,635)
-        self.assertEqual(walk_leg_path(None,58,'left'),'M0 525L-40 635')
+        self.assertEqual(joint_angles(None,58),dict(elbow_left=0,elbow_right=0,knee_left=0,knee_right=0))
 
     def test_story_renders_and_keeps_position_across_cuts(self):
         episode=json.loads((ROOT/'examples/one-more-take.json').read_text())
