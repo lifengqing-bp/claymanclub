@@ -13,7 +13,7 @@ before(async () => {
   fs.mkdirSync(output, {recursive:true});
   // Unique directories preserve earlier evidence and the renderer's no-overwrite rule.
   thisRun = fs.mkdtempSync(path.join(output, 'run-'));
-  for (const [name, source] of [['v04','examples/timed-performances.json'], ['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
+  for (const [name, source] of [['gestures','examples/gestures.json'], ['v05','examples/gaze-and-nod.json'], ['v04','examples/timed-performances.json'], ['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
     execFileSync(process.env.PYTHON || 'python3', ['-m','claymanclub','render',source,'--backend','stickfigure','--output',path.join(thisRun,name)], {cwd:root});
   }
   browser = await chromium.launch({headless:true, channel:'chromium'});
@@ -183,4 +183,75 @@ test('timed performances switch at exclusive boundaries and replay deterministic
   assert.deepEqual(await picture(page,'timed-replay'),empty);
   await page.reload(); await frame(page,120);
   assert.deepEqual(await picture(page,'timed-reload'),second);
+});
+
+
+test('continuous nod and explicit gaze preserve camera, subtitles and same-frame pixels',async t=>{
+  const page=await open(t,'v05');
+  const head=page.locator('[data-head="bolt"]');
+  await frame(page,20);
+  assert.equal(await head.getAttribute('transform'),'translate(0 0)');
+  assert.equal(await head.locator('path').first().getAttribute('d'),'M-9 340h1M21 340h1');
+  assert.equal(await page.locator('[data-head="pixel"] path').first().getAttribute('d'),'M-21 340h1M9 340h1');
+  const start=await picture(page,'nod-start');
+  const g=await geometry(page),scale=g.svg.height/960;
+  const clip={x:g.svg.x,y:g.svg.y+790*scale,width:g.svg.width,height:130*scale};
+  const subtitle=await page.screenshot({clip});
+  await frame(page,45);
+  const offset=Number((await head.getAttribute('transform')).match(/translate\(0 ([^)]+)\)/)[1]);
+  assert.ok(Math.abs(offset-7.5)<1e-10);
+  await frame(page,70);
+  assert.equal(await head.getAttribute('transform'),'translate(0 15)');
+  const peak=await picture(page,'nod-peak');
+  assert.notDeepEqual(peak,start);
+  assert.deepEqual(await page.screenshot({clip}),subtitle,'motion does not move subtitle pixels');
+  await frame(page,120); assert.equal(await head.getAttribute('transform'),'translate(0 0)');
+  await frame(page,121); assert.equal(await head.getAttribute('transform'),'translate(0 0)');
+  assert.doesNotMatch(await page.locator('#frame').textContent(),/我明白了/);
+  await frame(page,200); await frame(page,70);
+  assert.deepEqual(await picture(page,'nod-return'),peak);
+  await frame(page,20); await page.locator('#play').click(); await page.clock.runFor(850);
+  await page.locator('#play').click();
+  const at=Number(await page.locator('#seek').inputValue());
+  assert.ok(at>40 && at<50);
+  const played=await picture(page,'nod-played');
+  await page.clock.runFor(200); assert.deepEqual(await picture(page,'nod-paused'),played);
+  await frame(page,0); await frame(page,at); assert.deepEqual(await picture(page,'nod-seek-parity'),played);
+  await frame(page,899); await page.locator('#play').click();
+  assert.equal(await head.getAttribute('transform'),'translate(0 0)');
+  await page.reload(); await frame(page,70);
+  assert.deepEqual(await picture(page,'nod-reload'),peak);
+});
+
+
+test('wave and bow animate independent joints without moving feet or subtitles',async t=>{
+  const page=await open(t,'gestures');
+  const upper=page.locator('[data-upper="pixel"]'), arm=page.locator('[data-wave="bolt"]');
+  await frame(page,20);
+  const feet=await page.locator('[data-legs]').evaluateAll(es=>es.map(e=>e.getAttribute('d')));
+  const start=await picture(page,'gestures-start');
+  const g=await geometry(page),scale=g.svg.height/960;
+  const clip={x:g.svg.x,y:g.svg.y+790*scale,width:g.svg.width,height:130*scale};
+  const subtitle=await page.screenshot({clip});
+  await frame(page,70);
+  assert.equal(await upper.getAttribute('transform'),'rotate(30 0 525)');
+  const angle=Number((await arm.getAttribute('transform')).match(/rotate\(([^ ]+)/)[1]);
+  assert.ok(Math.abs(angle+120)<1e-10);
+  assert.deepEqual(await page.locator('[data-legs]').evaluateAll(es=>es.map(e=>e.getAttribute('d'))),feet);
+  // Feet share only actor/world transforms; neither arm nor waist rotation contains them.
+  assert.equal(await page.locator('[data-upper] [data-legs]').count(),0);
+  assert.deepEqual(await page.screenshot({clip}),subtitle);
+  const peak=await picture(page,'gestures-peak'); assert.notDeepEqual(peak,start);
+  await frame(page,120);
+  assert.equal(await upper.getAttribute('transform'),'rotate(0 0 525)');
+  assert.equal(await arm.getAttribute('transform'),'rotate(0 0 425)');
+  await frame(page,200); await frame(page,70);
+  assert.deepEqual(await picture(page,'gestures-return'),peak);
+  await frame(page,20); await page.locator('#play').click(); await page.clock.runFor(850);
+  await page.locator('#play').click();
+  const at=Number(await page.locator('#seek').inputValue());
+  const played=await picture(page,'gestures-played');
+  await page.clock.runFor(200); assert.deepEqual(await picture(page,'gestures-paused'),played);
+  await frame(page,0); await frame(page,at); assert.deepEqual(await picture(page,'gestures-seek-parity'),played);
+  await page.reload(); await frame(page,70); assert.deepEqual(await picture(page,'gestures-reload'),peak);
 });
