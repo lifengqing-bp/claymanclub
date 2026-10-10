@@ -11,6 +11,8 @@ class Capabilities:
     framing: frozenset[str]
     max_cast: int
     output_format: str
+    camera_spaces: frozenset[str] = frozenset()
+    camera_interpolations: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)

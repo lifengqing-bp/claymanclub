@@ -13,3 +13,5 @@ renders/
 **/Saved/
 .idea/
 .vscode/
+
+node_modules/
