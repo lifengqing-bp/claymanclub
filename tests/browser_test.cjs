@@ -13,9 +13,16 @@ before(async () => {
   fs.mkdirSync(output, {recursive:true});
   // Unique directories preserve earlier evidence and the renderer's no-overwrite rule.
   thisRun = fs.mkdtempSync(path.join(output, 'run-'));
-  for (const [name, source] of [['gestures','examples/gestures.json'], ['v05','examples/gaze-and-nod.json'], ['v04','examples/timed-performances.json'], ['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
+  for (const [name, source] of [['stage','examples/stage-motion.json'], ['gestures','examples/gestures.json'], ['v05','examples/gaze-and-nod.json'], ['v04','examples/timed-performances.json'], ['v03','examples/episode-001.json'], ['v02','tests/fixtures/episode-001-v02.json']]) {
     execFileSync(process.env.PYTHON || 'python3', ['-m','claymanclub','render',source,'--backend','stickfigure','--output',path.join(thisRun,name)], {cwd:root});
   }
+  const crossing=JSON.parse(fs.readFileSync(path.join(root,'examples/stage-motion.json'),'utf8'));
+  crossing.shots[0].actor_tracks[0].keyframes.at(-1).offset[0]=0.3;
+  delete crossing.shots[1].actor_tracks;
+  crossing.shots[1].framing={size:'close',subjects:['bolt']};
+  const crossSource=path.join(thisRun,'crossing.json');
+  fs.writeFileSync(crossSource,JSON.stringify(crossing));
+  execFileSync(process.env.PYTHON || 'python3',['-m','claymanclub','render',crossSource,'--backend','stickfigure','--output',path.join(thisRun,'cross')],{cwd:root});
   browser = await chromium.launch({headless:true, channel:'chromium'});
   fs.writeFileSync(path.join(thisRun,'environment.json'), JSON.stringify({browser:browser.version(),playwright:require('playwright/package.json').version,platform:process.platform,viewport:{width:1000,height:1100}},null,2));
   console.log(`Browser evidence: ${thisRun}`);
@@ -254,4 +261,53 @@ test('wave and bow animate independent joints without moving feet or subtitles',
   await page.clock.runFor(200); assert.deepEqual(await picture(page,'gestures-paused'),played);
   await frame(page,0); await frame(page,at); assert.deepEqual(await picture(page,'gestures-seek-parity'),played);
   await page.reload(); await frame(page,70); assert.deepEqual(await picture(page,'gestures-reload'),peak);
+});
+
+
+test('actor tracks and walking compose with camera; seek, cuts and replay remain deterministic',async t=>{
+  const page=await open(t,'stage');
+  const actor=page.locator('[data-actor="bolt"]');
+  await frame(page,20);
+  assert.equal(await actor.getAttribute('transform'),'translate(170 0)');
+  const g=await geometry(page),scale=g.svg.height/960;
+  const clip={x:g.svg.x,y:g.svg.y+790*scale,width:g.svg.width,height:130*scale};
+  const subtitle=await page.screenshot({clip});
+  await frame(page,45);
+  assert.equal(await actor.getAttribute('transform'),'translate(179.6 0)');
+  await frame(page,58);
+  const leg=await actor.locator('[data-walk-leg="left"]').getAttribute('transform');
+  assert.notEqual(leg,'rotate(0 0 525)');
+  assert.deepEqual(await page.screenshot({clip}),subtitle);
+  assert.notDeepEqual((await geometry(page)).matrix,g.matrix);
+  const moving=await picture(page,'stage-moving');
+  await frame(page,120);
+  assert.equal(await actor.getAttribute('transform'),'translate(208.4 0)');
+  assert.equal(await actor.locator('[data-walk-leg="left"]').getAttribute('transform'),'rotate(0 0 525)');
+  await frame(page,180);
+  assert.equal(await actor.getAttribute('transform'),'translate(208.4 0)');
+  await frame(page,58);assert.deepEqual(await picture(page,'stage-backward-cut'),moving);
+  await frame(page,20);await page.locator('#play').click();await page.clock.runFor(850);
+  await page.locator('#play').click();
+  const at=Number(await page.locator('#seek').inputValue()),played=await picture(page,'stage-played');
+  await page.clock.runFor(200);assert.deepEqual(await picture(page,'stage-paused'),played);
+  await frame(page,0);await frame(page,at);assert.deepEqual(await picture(page,'stage-seek-parity'),played);
+  await frame(page,539);await page.locator('#play').click();
+  assert.equal(await page.locator('#seek').inputValue(),'0');
+  assert.equal(await actor.getAttribute('transform'),'translate(170 0)');
+  await page.locator('#play').click();await page.reload();await frame(page,58);
+  assert.deepEqual(await picture(page,'stage-reload'),moving);
+});
+
+
+test('gaze follows crossing actors and absent tracks reset on the next shot',async t=>{
+  const page=await open(t,'cross');
+  const eyes=page.locator('[data-eyes="bolt"]');
+  await frame(page,20);assert.equal(await eyes.getAttribute('d'),'M-9 340h1M21 340h1');
+  await frame(page,119);assert.equal(await eyes.getAttribute('d'),'M-21 340h1M9 340h1');
+  const crossed=await picture(page,'stage-crossed');
+  await frame(page,180);
+  assert.equal(await page.locator('[data-actor="bolt"]').getAttribute('transform'),'translate(270 0)');
+  assert.equal(await page.locator('[data-actor="pixel"]').count(),0);
+  await frame(page,220);assert.equal(await eyes.getAttribute('d'),'M-9 340h1M21 340h1');
+  await frame(page,119);assert.deepEqual(await picture(page,'stage-cross-return'),crossed);
 });

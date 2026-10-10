@@ -30,6 +30,9 @@
     },
     "bow": {
       "description": "One timed bend and recovery; requires v0.5 and animated bow capability."
+    },
+    "walk": {
+      "description": "Timed procedural walking cycle, independently composed with actor_tracks; requires v0.6."
     }
   },
   "emotions": {

@@ -16,6 +16,7 @@ class Capabilities:
     timed_performances: bool = False
     gaze_targets: bool = False
     animated_actions: frozenset[str] = frozenset()
+    actor_spaces: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)

@@ -1,17 +1,20 @@
 """Shot-local performance intervals, independent of any renderer."""
 import math
 
-TIMED_VERSIONS = ('0.4', '0.5')
-ANIMATED_ACTIONS = frozenset({'nod', 'wave', 'bow'})
+TIMED_VERSIONS = ('0.4', '0.5', '0.6')
+ANIMATED_VERSIONS = ('0.5', '0.6')
+ANIMATED_ACTIONS = frozenset({'nod', 'wave', 'bow', 'walk'})
 
 
 def validate_performances(shot, version):
     duration = shot['end_frame'] - shot['start_frame']
     intervals = {}
     for performance in shot['performances']:
-        if performance['action'] in ('wave', 'bow') and version != '0.5':
+        if performance['action'] == 'walk' and version != '0.6':
+            raise ValueError('walk requires schema_version 0.6')
+        if performance['action'] in ('wave', 'bow') and version not in ANIMATED_VERSIONS:
             raise ValueError('wave and bow require schema_version 0.5')
-        if 'gaze_target' in performance and version != '0.5':
+        if 'gaze_target' in performance and version not in ANIMATED_VERSIONS:
             raise ValueError('gaze_target requires schema_version 0.5')
         if version not in TIMED_VERSIONS:
             if 'start_frame' in performance or 'end_frame' in performance:
@@ -20,8 +23,8 @@ def validate_performances(shot, version):
         start, end = performance.get('start_frame'), performance.get('end_frame')
         if not (type(start) is int and type(end) is int and 0 <= start < end <= duration):
             raise ValueError('performance interval must be integers within [0, shot duration]')
-        if version == '0.5' and performance['action'] in ANIMATED_ACTIONS:
-            minimum = 17 if performance['action'] == 'wave' else 3
+        if version in ANIMATED_VERSIONS and performance['action'] in ANIMATED_ACTIONS:
+            minimum = 17 if performance['action'] in ('wave', 'walk') else 3
             if end - start < minimum:
                 raise ValueError(f'animated {performance["action"]} requires at least {minimum} frames')
         intervals.setdefault(performance['actor'], []).append((start, end))
@@ -38,7 +41,7 @@ def preflight_performances(episode, capabilities):
             validate_gaze(p, episode['cast'], episode['schema_version'])
             if 'gaze_target' in p and not capabilities.gaze_targets:
                 raise ValueError('unsupported backend gaze targets')
-            if episode['schema_version'] == '0.5' and p['action'] in ANIMATED_ACTIONS and p['action'] not in capabilities.animated_actions:
+            if episode['schema_version'] in ANIMATED_VERSIONS and p['action'] in ANIMATED_ACTIONS and p['action'] not in capabilities.animated_actions:
                 raise ValueError('unsupported backend animated action: ' + p['action'])
     if episode['schema_version'] in TIMED_VERSIONS and not capabilities.timed_performances:
         raise ValueError('unsupported backend timed performances')
@@ -61,7 +64,7 @@ def performance_boundaries(shot, version):
 def validate_gaze(performance, cast, version):
     if 'gaze_target' not in performance:
         return
-    if version != '0.5':
+    if version not in ANIMATED_VERSIONS:
         raise ValueError('gaze_target requires schema_version 0.5')
     target = performance['gaze_target']
     if not isinstance(target, str) or target not in cast or target == performance['actor']:
