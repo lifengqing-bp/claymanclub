@@ -54,3 +54,16 @@ def scene_svg(scene):
     if scene not in SCENES:
         raise ValueError('stickfigure has no scene binding: ' + scene)
     return f'<g data-scene="{escape(scene, quote=True)}">{SCENES[scene]()}</g>'
+
+
+def wireframe_park():
+    return ('<rect x="15" y="110" width="510" height="660" rx="16" fill="#1b2940"/>'
+            '<g fill="none" stroke="#718c9e" stroke-width="2">'
+            '<path d="M20 555H520M240 555L40 770M300 555L500 770M160 640H370M100 710H440"/>'
+            '<path d="M20 480H520M20 510H520M40 465V545M110 465V545M180 465V545M250 465V545M320 465V545M390 465V545M460 465V545"/>'
+            '<path data-prop="bench" d="M350 580H490L475 550H360ZM360 550V518H475V550M365 580V615M480 580V615"/>'
+            '<path data-prop="tree" d="M65 520V360M80 520V360M72 350Q-5 390 30 315Q-5 270 40 260Q60 210 95 258Q150 250 120 307Q160 365 72 350"/>'
+            '</g>')
+
+
+SCENES['wireframe_park'] = wireframe_park

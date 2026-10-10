@@ -16,13 +16,13 @@ def gesture_angles(performance, frame):
 
 
 def walk_swing(performance, frame):
-    if not performance or performance['action'] != 'walk':
+    if not performance or performance['action'] not in ('walk', 'run'):
         return 0.0
     amount = motion_envelope(performance, frame)
     if not amount:
         return 0.0
     phase = (frame - performance['start_frame']) / (performance['end_frame'] - performance['start_frame'] - 1)
-    return 22 * math.sin(4 * math.pi * phase) * amount
+    return (34 if performance['action'] == 'run' else 22) * math.sin((8 if performance['action'] == 'run' else 4) * math.pi * phase) * amount
 
 
 
@@ -37,12 +37,14 @@ def joint_angles(performance, frame):
         lift = min(1, 4 * phase, 4 * (1 - phase))
         lift = lift * lift * (3 - 2 * lift)
         result['elbow_right'] = -85 * lift + 20 * math.sin(8 * math.pi * phase) * amount
-    elif performance['action'] == 'walk':
-        stride = math.sin(4 * math.pi * phase)
+    elif performance['action'] in ('walk', 'run'):
+        stride = math.sin((8 if performance['action'] == 'run' else 4) * math.pi * phase)
         result['elbow_left'] = 35 * amount
         result['elbow_right'] = -35 * amount
         result['knee_left'] = 70 * max(0, -stride) * amount
         result['knee_right'] = -70 * max(0, stride) * amount
+    if performance['action'] == 'jump':
+        result.update(elbow_left=45*amount, elbow_right=-45*amount, knee_left=65*amount, knee_right=-65*amount)
     return result
 
 
@@ -53,3 +55,8 @@ def walk_leg_points(performance, frame, side):
     dx, dy = direction * 20, 55
     return [dx, 580, dx + dx * math.cos(angle) - dy * math.sin(angle),
             580 + dx * math.sin(angle) + dy * math.cos(angle)]
+
+
+def jump_height(performance, frame):
+    """Backend binding: positive world-up displacement, neutral at both ends."""
+    return 100 * motion_envelope(performance, frame) if performance and performance['action'] == 'jump' else 0.0

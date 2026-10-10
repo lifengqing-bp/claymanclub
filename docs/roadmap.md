@@ -79,3 +79,13 @@
 
 - 有界任务队列、取消、失败恢复、版本溯源和镜头级重跑。
 - 验收：局部改动只重做相关产物，失败不损坏已经完成的工作。
+
+### v0.7 spatial/weather prototype
+
+Implemented: faster run gait, one-cycle jump, camera-composable line weather
+(sun, cloud, overcast, wind, rain, visual storm), semantic timed umbrella holding,
+and a six-shot 30-second example. Independent backend capability checks and
+Python/JavaScript sampling parity protect compatibility. Still open: continuous
+pickup/drop, collision/foot locking, free prop placement and depth ordering,
+weather transitions within a shot and audio. These are not implied by the
+current attachment and 2D trajectory implementation.

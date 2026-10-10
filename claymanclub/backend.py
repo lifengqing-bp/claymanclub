@@ -17,6 +17,8 @@ class Capabilities:
     gaze_targets: bool = False
     animated_actions: frozenset[str] = frozenset()
     actor_spaces: frozenset[str] = frozenset()
+    weather: frozenset[str] = frozenset()
+    interactions: frozenset[tuple[str, str]] = frozenset()
 
 
 @dataclass(frozen=True)

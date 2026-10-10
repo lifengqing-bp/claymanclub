@@ -137,3 +137,17 @@ python3 scripts/export_video.py examples/wireframe-scene.json --output outputs/w
 `wireframe_lounge` 通过墙角、疏密地面线、窗框、桌椅、书架和盆栽表现空间。道具使用细线，角色使用较粗高亮线；头部遮住背后的布景线，避免线条穿过表情。
 场景和道具一起运镜，字幕与 UI 固定。旧 `robot_lounge` 保留原画面，新场景仅需更换已有 `scene` ID。
 这是二维线框布景：尚无真实三维投影、深度排序、碰撞、坐下或拿取道具动作。
+
+### Space, motion and weather demo (v0.7)
+
+`examples/weather-walk.json` combines a line-drawn park, walk/run/jump,
+right-hand umbrella attachment and sunny/cloudy/overcast/windy/rain/storm
+presets. All effects use absolute frames, including reverse seeking.
+
+```sh
+python -m claymanclub render examples/weather-walk.json --backend stickfigure --output outputs/weather-walk
+python scripts/export_video.py examples/weather-walk.json --output outputs/weather-walk.mp4
+```
+
+The optional exporter requires FFmpeg and system Cairo/librsvg. This demo is
+silent. Prop support currently means timed holding, not pickup/drop or physics.

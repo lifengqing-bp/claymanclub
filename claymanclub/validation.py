@@ -3,6 +3,7 @@
 import argparse
 import json
 from pathlib import Path
+from .environment import validate_environment
 from .staging import validate_tracks
 from .camera import validate_camera
 from .performance import validate_performances, validate_gaze, TIMED_VERSIONS
@@ -19,7 +20,7 @@ def positive_int(value):
 
 def validate(episode, catalog):
     require(isinstance(episode, dict), 'episode must be an object')
-    require(episode.get('schema_version') in ('0.2', '0.3', '0.4', '0.5', '0.6'), 'unsupported schema_version')
+    require(episode.get('schema_version') in ('0.2', '0.3', '0.4', '0.5', '0.6', '0.7'), 'unsupported schema_version')
     require(isinstance(episode.get('episode_id'), str) and episode['episode_id'], 'episode_id required')
     require(positive_int(episode.get('fps')), 'fps must be a positive integer')
     require(positive_int(episode.get('duration_frames')), 'duration_frames must be a positive integer')
@@ -39,6 +40,7 @@ def validate(episode, catalog):
         start, end = shot.get('start_frame'), shot.get('end_frame')
         require(type(start) is int and type(end) is int and start == cursor and end > start,
                 f'{sid}: frames must be contiguous and have positive duration')
+        validate_environment(shot, episode['schema_version'], cast)
         validate_camera(shot, episode['schema_version'])
         validate_tracks(shot, episode['schema_version'], cast)
         framing = shot.get('framing')

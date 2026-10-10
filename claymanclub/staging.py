@@ -8,7 +8,7 @@ def validate_tracks(shot, version, cast):
     def require(condition, message):
         if not condition:
             raise ValueError('actor_tracks: ' + message)
-    require(version == '0.6', 'requires schema_version 0.6')
+    require(version in ('0.6', '0.7'), 'requires schema_version 0.6')
     tracks = shot['actor_tracks']
     require(isinstance(tracks, list), 'must be a list')
     actors = set()

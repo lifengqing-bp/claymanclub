@@ -5,6 +5,9 @@
     },
     "wireframe_lounge": {
       "description": "A lounge with room edges, floor depth cues, window, table, chair, shelf and plant. Backend owns visual bindings; no prop interaction."
+    },
+    "wireframe_park": {
+      "description": "Line park with horizon, path, fence, bench and tree."
     }
   },
   "actors": {
@@ -36,6 +39,12 @@
     },
     "walk": {
       "description": "Timed procedural walking cycle, independently composed with actor_tracks; requires v0.6."
+    },
+    "run": {
+      "description": "Timed run; requires v0.7."
+    },
+    "jump": {
+      "description": "Timed jump; requires v0.7."
     }
   },
   "emotions": {
