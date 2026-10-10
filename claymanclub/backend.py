@@ -14,6 +14,8 @@ class Capabilities:
     camera_spaces: frozenset[str] = frozenset()
     camera_interpolations: frozenset[str] = frozenset()
     timed_performances: bool = False
+    gaze_targets: bool = False
+    animated_actions: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)

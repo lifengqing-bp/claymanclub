@@ -1,0 +1,178 @@
+{
+  "schema_version": "0.5",
+  "episode_id": "gaze-and-nod-demo",
+  "fps": 30,
+  "duration_frames": 900,
+  "scene": "robot_lounge",
+  "cast": [
+    "bolt",
+    "pixel"
+  ],
+  "shots": [
+    {
+      "id": "shot-001",
+      "start_frame": 0,
+      "end_frame": 180,
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "nod",
+          "emotion": "neutral",
+          "line": "你看，我明白了。",
+          "start_frame": 20,
+          "end_frame": 121,
+          "gaze_target": "pixel"
+        },
+        {
+          "actor": "pixel",
+          "action": "idle",
+          "emotion": "surprised",
+          "line": "真的？",
+          "start_frame": 20,
+          "end_frame": 121,
+          "gaze_target": "bolt"
+        }
+      ],
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      },
+      "camera": {
+        "space": "framing_2d",
+        "interpolation": "linear",
+        "keyframes": [
+          {
+            "frame": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "zoom": 1
+          },
+          {
+            "frame": 90,
+            "position": [
+              -0.08,
+              0.05,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              5
+            ],
+            "zoom": 1.2
+          },
+          {
+            "frame": 180,
+            "position": [
+              0.08,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              -5
+            ],
+            "zoom": 1.1
+          }
+        ]
+      }
+    },
+    {
+      "id": "shot-002",
+      "start_frame": 180,
+      "end_frame": 360,
+      "performances": [
+        {
+          "actor": "pixel",
+          "action": "look_down",
+          "emotion": "guilty",
+          "line": "我只是……尝了一口。",
+          "start_frame": 20,
+          "end_frame": 120
+        }
+      ],
+      "framing": {
+        "size": "close",
+        "subjects": [
+          "pixel"
+        ]
+      }
+    },
+    {
+      "id": "shot-003",
+      "start_frame": 360,
+      "end_frame": 540,
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "look_at_partner",
+          "emotion": "surprised",
+          "line": "你把充电器吃了？",
+          "start_frame": 20,
+          "end_frame": 120
+        }
+      ],
+      "framing": {
+        "size": "close",
+        "subjects": [
+          "bolt"
+        ]
+      }
+    },
+    {
+      "id": "shot-004",
+      "start_frame": 540,
+      "end_frame": 720,
+      "performances": [
+        {
+          "actor": "pixel",
+          "action": "nod",
+          "emotion": "neutral",
+          "line": "包装上写着，能量补给。",
+          "start_frame": 20,
+          "end_frame": 120
+        }
+      ],
+      "framing": {
+        "size": "close",
+        "subjects": [
+          "pixel"
+        ]
+      }
+    },
+    {
+      "id": "shot-005",
+      "start_frame": 720,
+      "end_frame": 900,
+      "performances": [
+        {
+          "actor": "bolt",
+          "action": "idle",
+          "emotion": "neutral",
+          "line": "那是给手机的。",
+          "start_frame": 20,
+          "end_frame": 120
+        }
+      ],
+      "framing": {
+        "size": "wide",
+        "subjects": [
+          "bolt",
+          "pixel"
+        ]
+      }
+    }
+  ]
+}

@@ -4,17 +4,18 @@ import json
 from html import escape
 from pathlib import Path
 from ..camera import preflight_camera, sample_camera
-from ..performance import active_performances, performance_boundaries, preflight_performances
+from ..performance import active_performances, performance_boundaries, preflight_performances, nod_amount, TIMED_VERSIONS
 from ..backend import Capabilities, PresentationBackend, RenderResult
 
 
 class StickFigureBackend(PresentationBackend):
-    name, version = 'stickfigure', '0.3'
+    name, version = 'stickfigure', '0.4'
     capabilities = Capabilities(
         frozenset({'idle', 'look_at_partner', 'look_down', 'nod'}),
         frozenset({'neutral', 'suspicious', 'guilty', 'surprised'}),
         frozenset({'wide', 'close'}), 2, 'html-svg-storyboard',
-        frozenset({'framing_2d'}), frozenset({'linear'}), timed_performances=True)
+        frozenset({'framing_2d'}), frozenset({'linear'}), timed_performances=True,
+        gaze_targets=True, animated_actions=frozenset({'nod'}))
 
     def preflight(self, episode):
         preflight_camera(episode, self.capabilities)
@@ -36,6 +37,7 @@ class StickFigureBackend(PresentationBackend):
                     raise ValueError('look_at_partner requires two actors')
 
     def frame(self, episode, shot, local_frame=0):
+        animated = episode['schema_version'] == '0.5'
         performances = active_performances(shot, episode['schema_version'], local_frame)
         subjects = shot['framing']['subjects']
         visible = episode['cast'] if shot['framing']['size'] == 'wide' else subjects
@@ -53,18 +55,21 @@ class StickFigureBackend(PresentationBackend):
             x = 270 if len(visible) == 1 else 170 + index * 200
             p = by_actor.get(actor, {'action': 'idle', 'emotion': 'neutral'})
             color = ['#64dddc', '#ffcd78'][episode['cast'].index(actor)]
-            head_y = 360 if p['action'] in ('look_down', 'nod') else 345
+            head_y = 360 if p['action'] == 'look_down' or (p['action'] == 'nod' and not animated) else 345
             gaze = (6 if episode['cast'].index(actor) == 0 else -6) if p['action'] == 'look_at_partner' else 0
+            if 'gaze_target' in p:
+                gaze = 6 if episode['cast'].index(p['gaze_target']) > episode['cast'].index(actor) else -6
+            head_offset = 15 * nod_amount(p, local_frame) if animated else 0
             parts += [f'<g transform="translate({x} 0)" stroke="{color}" stroke-width="7" stroke-linecap="round" fill="none">',
+                      f'<g data-head="{escape(actor, quote=True)}" transform="translate(0 {head_offset})">',
                       f'<circle cx="0" cy="{head_y}" r="40"/>',
-                      '<path d="M0 395V525M0 425L-55 475M0 425L55 475M0 525L-40 635M0 525L40 635"/>',
                       f'<path d="M{-15+gaze} {head_y-5}h1M{15+gaze} {head_y-5}h1"/>']
             if p['emotion'] == 'surprised':
                 parts.append(f'<circle cx="0" cy="{head_y+19}" r="8" stroke-width="3"/>')
             else:
                 slope = -6 if p['emotion'] == 'suspicious' else 5 if p['emotion'] == 'guilty' else 0
                 parts.append(f'<path d="M-12 {head_y+20}l24 {slope}" stroke-width="3"/>')
-            parts += ['</g>', f'<text x="{x}" y="710" fill="{color}" text-anchor="middle" font-size="23">{escape(actor)}</text>']
+            parts += ['</g>', '<path d="M0 395V525M0 425L-55 475M0 425L55 475M0 525L-40 635M0 525L40 635"/>', '</g>', f'<text x="{x}" y="710" fill="{color}" text-anchor="middle" font-size="23">{escape(actor)}</text>']
         parts += ['</g>', '<rect width="540" height="100" fill="#101827"/>',
                   '<rect y="780" width="540" height="180" fill="#101827"/>', '<text x="35" y="65" fill="#e6efff" font-size="26">claymanclub · Stick figures</text>']
         # Subtitle wrapping by code points is adequate for the supplied short CJK lines.
@@ -81,8 +86,8 @@ class StickFigureBackend(PresentationBackend):
         manifest = {'backend': self.name, 'backend_version': self.version,
                     'format': self.capabilities.output_format,
                     'episode_sha256': hashlib.sha256(json.dumps(episode, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
-                    'limitations': ['Discrete performance poses; nod is a lowered-head key pose.',
-                                    'No audio, lip sync, continuous character motion or video export.'],
+                    'limitations': ['v0.5 nod animates one head dip; older versions retain key poses.',
+                                    'No locomotion, skeletal animation, audio, lip sync or video export.'],
                     'fps': episode['fps'], 'duration_frames': episode['duration_frames'], 'shots': []}
         preview_shots = []
         for i, shot in enumerate(episode['shots']):
@@ -91,11 +96,13 @@ class StickFigureBackend(PresentationBackend):
             (output / filename).write_text(svg, encoding='utf-8')
             preview = {'camera': shot.get('camera'),
                        'start': shot['start_frame'], 'end': shot['end_frame']}
-            if episode['schema_version'] == '0.4':
+            if episode['schema_version'] in TIMED_VERSIONS:
                 preview['poses'] = [{'start': f, 'svg': svg if f == 0 else self.frame(episode, shot, f)}
                                     for f in performance_boundaries(shot, episode['schema_version'])]
             else:
                 preview['svg'] = svg
+            if episode['schema_version'] == '0.5':
+                preview['motions'] = [p for p in shot['performances'] if p['action'] == 'nod']
             preview_shots.append(preview)
             manifest['shots'].append({'file': filename, 'start': shot['start_frame'], 'end': shot['end_frame'],
                                       'camera': shot.get('camera'), 'performances': shot['performances']})
@@ -105,7 +112,7 @@ class StickFigureBackend(PresentationBackend):
         player = Path(__file__).with_name('player.js').read_text(encoding='utf-8')
         html = '''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>claymanclub preview</title>
 <style>body{background:#101827;color:#eee;font:16px system-ui;text-align:center}svg{display:block;margin:auto;width:min(95vw,42.1875vh);height:auto;overflow:hidden}button,input{margin:8px}input{width:45vw}</style>
-<h2>claymanclub · 火柴人分镜预览</h2><p>离散表演姿势 · 二维运镜 · 无音频 · 非最终视频</p>
+<h2>claymanclub · 火柴人分镜预览</h2><p>定时表演 · 二维运镜 · 无音频 · 非最终视频</p>
 <div id="frame" role="img" aria-label="Storyboard frame"></div><div><button id="play">播放</button><input id="seek" aria-label="Frame" type="range" min="0" value="0"><span id="time"></span></div>
 <script>const plan=''' + data + ';\n' + player + '</script>'
         (output / 'index.html').write_text(html, encoding='utf-8')
